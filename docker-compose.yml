@@ -2,18 +2,13 @@ version: '3.8'
 
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: caicara-site
-    restart: unless-stopped
+    image: caicara-site-image
+    build: .
+    restart: always
     ports:
-      # Expondo na porta 3000. O Nginx vai ler daqui.
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      # Se você tiver chaves (como o Gemini ou Places),
-      # elas podem ser passadas por aqui ou criadas no painel do Portainer
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
       - GOOGLE_PLACE_ID=${GOOGLE_PLACE_ID}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
