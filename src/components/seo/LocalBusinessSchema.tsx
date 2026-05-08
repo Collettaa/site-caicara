@@ -1,41 +1,34 @@
+import { siteConfig } from "@/lib/site";
+
 export function LocalBusinessSchema() {
   const schema = {
     "@context": "https://schema.org",
-    "@type": "HealthAndBeautyBusiness", // Health club/Gym fits here or SportsActivityLocation
-    "name": "Caiçara Fit",
-    "image": "https://caicarafit.com.br/logo.png", // TODO: Update
-    "@id": "https://caicarafit.com.br",
-    "url": "https://caicarafit.com.br",
-    "telephone": "+5513920013547", // TODO: Update
-    "address": {
+    "@type": "HealthAndBeautyBusiness",
+    name: siteConfig.name,
+    image: `${siteConfig.siteUrl}/images/logo.png`,
+    "@id": siteConfig.siteUrl,
+    url: siteConfig.siteUrl,
+    telephone: siteConfig.phoneE164,
+    address: {
       "@type": "PostalAddress",
-      "streetAddress": "Av. Embaixador pedro de toledo, 593", // TODO: Update
-      "addressLocality": "São Vicente",
-      "addressRegion": "SP",
-      "postalCode": "11320-440",
-      "addressCountry": "BR"
+      streetAddress: siteConfig.address.streetAddress,
+      addressLocality: siteConfig.address.locality,
+      addressRegion: siteConfig.address.region,
+      postalCode: siteConfig.address.postalCode,
+      addressCountry: siteConfig.address.country,
     },
-    "geo": {
+    geo: {
       "@type": "GeoCoordinates",
-      "latitude": -23.9618, // TODO: Update with real Santos/Guarujá coords
-      "longitude": -46.3322
+      latitude: -23.9618,
+      longitude: -46.3322,
     },
-    "openingHoursSpecification": {
+    openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
-      "dayOfWeek": [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday"
-      ],
-      "opens": "06:00",
-      "closes": "22:00"
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      opens: "06:00",
+      closes: "22:00",
     },
-    "sameAs": [
-      "https://instagram.com/caicarafit013"
-    ]
+    sameAs: [siteConfig.instagramUrl],
   };
 
   return (

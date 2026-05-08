@@ -4,15 +4,18 @@
 @theme inline {
   --color-background: #ffffff;
   --color-foreground: #171717;
-  
-  /* Brand Colors */
-  --color-caicara-yellow: #FFC107; /* Amarelo vibrante e limpo */
-  --color-caicara-yellow-light: #FFD54F;
-  --color-caicara-yellow-dark: #FFA000;
-  
+
+  --color-caicara-yellow: #ffc107;
+  --color-caicara-yellow-light: #ffd54f;
+  --color-caicara-yellow-dark: #ffa000;
+
   --font-sans: var(--font-inter);
   --font-heading: var(--font-oswald);
   --font-serif: var(--font-playfair);
+}
+
+html {
+  scroll-padding-top: 6rem;
 }
 
 body {
@@ -23,7 +26,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Utilitários Globais */
 .container {
   width: 100%;
   margin-left: auto;
@@ -37,6 +39,7 @@ body {
     max-width: 640px;
   }
 }
+
 @media (min-width: 768px) {
   .container {
     max-width: 768px;
@@ -44,11 +47,13 @@ body {
     padding-right: 2rem;
   }
 }
+
 @media (min-width: 1024px) {
   .container {
     max-width: 1024px;
   }
 }
+
 @media (min-width: 1280px) {
   .container {
     max-width: 1280px;
