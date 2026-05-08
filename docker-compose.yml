@@ -1,10 +1,6 @@
-version: '3.8'
-
 services:
   web:
-    image: caicara-site-image
-    ports:
-      - "3000:3000"
+    image: ghcr.io/collettaa/site-caicara:latest
     environment:
       - NODE_ENV=production
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
@@ -12,13 +8,34 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     networks:
       - CaicaraNet
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/robots.txt').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     deploy:
+      restart_policy:
+        condition: on-failure
       labels:
-        - traefik.enable=1
-        - traefik.http.routers.caicara-site.rule=Host(`caicara.store`, `www.caicara.store`)
+        - traefik.enable=true
+        - traefik.docker.network=CaicaraNet
         - traefik.http.routers.caicara-site.entrypoints=websecure
+        - traefik.http.routers.caicara-site.rule=Host(`caicara.store`)
+        - traefik.http.routers.caicara-site.tls=true
         - traefik.http.routers.caicara-site.tls.certresolver=letsencryptresolver
         - traefik.http.routers.caicara-site.service=caicara-site
+        - traefik.http.routers.caicara-site-www.entrypoints=websecure
+        - traefik.http.routers.caicara-site-www.rule=Host(`www.caicara.store`)
+        - traefik.http.routers.caicara-site-www.tls=true
+        - traefik.http.routers.caicara-site-www.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.caicara-site-www.service=caicara-site
         - traefik.http.services.caicara-site.loadbalancer.server.port=3000
         - traefik.http.services.caicara-site.loadbalancer.passHostHeader=true
 

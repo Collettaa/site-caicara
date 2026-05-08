@@ -25,6 +25,9 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+LABEL org.opencontainers.image.source="https://github.com/Collettaa/site-caicara"
+LABEL org.opencontainers.image.description="Site institucional da Caicara, publicado em Docker Swarm com Traefik."
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
