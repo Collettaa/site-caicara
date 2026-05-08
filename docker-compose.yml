@@ -21,8 +21,8 @@ services:
         - traefik.http.routers.caicara-site.service=caicara-site
         - traefik.http.services.caicara-site.loadbalancer.server.port=3000
         - traefik.http.services.caicara-site.loadbalancer.passHostHeader=true
-        - traefik.docker.network=CaicaraNet
 
 networks:
   CaicaraNet:
     external: true
+    name: CaicaraNet
