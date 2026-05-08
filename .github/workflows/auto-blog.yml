@@ -1,0 +1,37 @@
+name: Automated SEO Blog Generator
+
+on:
+  schedule:
+    # Roda toda segunda-feira às 8:00 UTC (5:00 no Brasil)
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+    # Permite rodar o workflow manualmente pelo painel do GitHub
+
+jobs:
+  generate_post:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate AI Blog Post
+        run: npx tsx scripts/generate-post.ts
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "caicara-ai-bot"
+          git config --global user.email "ai@caicarafit.com.br"
+          git add src/content/blog/*.mdx
+          git commit -m "📝 chore(blog): auto-generated SEO blog post [skip ci]" || echo "No changes to commit"
+          git push origin HEAD:main
