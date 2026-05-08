@@ -3,8 +3,6 @@ version: '3.8'
 services:
   web:
     image: caicara-site-image
-    build: .
-    restart: always
     ports:
       - "3000:3000"
     environment:
