@@ -22,8 +22,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="max-w-sm text-sm leading-relaxed text-gray-500">
-              Mais que um box, um estilo de vida com acolhimento, treino e eventos que aproximam a comunidade dentro e
-              fora da praia.
+              Mais que um box, um estilo de vida com acolhimento, treino, beach sports e eventos que aproximam a
+              comunidade dentro e fora da praia.
             </p>
           </div>
 

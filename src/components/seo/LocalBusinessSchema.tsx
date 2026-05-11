@@ -3,12 +3,14 @@ import { siteConfig } from "@/lib/site";
 export function LocalBusinessSchema() {
   const schema = {
     "@context": "https://schema.org",
-    "@type": "HealthAndBeautyBusiness",
+    "@type": ["ExerciseGym", "HealthClub"],
+    "@id": `${siteConfig.siteUrl}#business`,
     name: siteConfig.name,
-    image: `${siteConfig.siteUrl}/images/logo.png`,
-    "@id": siteConfig.siteUrl,
+    description: siteConfig.description,
     url: siteConfig.siteUrl,
+    image: [`${siteConfig.siteUrl}/images/logo.png`, `${siteConfig.siteUrl}${siteConfig.heroImage}`],
     telephone: siteConfig.phoneE164,
+    priceRange: "$$",
     address: {
       "@type": "PostalAddress",
       streetAddress: siteConfig.address.streetAddress,
@@ -19,22 +21,48 @@ export function LocalBusinessSchema() {
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: -23.9618,
-      longitude: -46.3322,
+      latitude: siteConfig.geo.latitude,
+      longitude: siteConfig.geo.longitude,
     },
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      opens: "06:00",
-      closes: "22:00",
-    },
-    sameAs: [siteConfig.instagramUrl],
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "06:00:00",
+        closes: "22:00:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: "Saturday",
+        opens: "08:00:00",
+        closes: "12:00:00",
+      },
+    ],
+    areaServed: [
+      {
+        "@type": "City",
+        name: "São Vicente",
+      },
+      {
+        "@type": "AdministrativeArea",
+        name: "Baixada Santista",
+      },
+    ],
+    hasMap: siteConfig.googleMapsUrl,
+    knowsAbout: [
+      "CrossFit", 
+      "treino funcional", 
+      "beach sports", 
+      "futevôlei", 
+      "beach tennis", 
+      "condicionamento físico",
+      "Cross",
+      "crosstraining",
+      "academia",
+      "academia de crossfit"
+    ],
+    sameAs: [siteConfig.instagramUrl, siteConfig.googleMapsUrl],
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />;
 }
