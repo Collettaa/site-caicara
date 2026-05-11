@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Oswald, Playfair_Display } from "next/font/google";
+import { Inter, Oswald } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
@@ -17,13 +17,6 @@ const oswald = Oswald({
   variable: "--font-oswald",
   subsets: ["latin"],
   display: "swap",
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  display: "swap",
-  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -98,7 +91,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${inter.variable} ${oswald.variable} ${playfair.variable} h-full antialiased scroll-smooth`}
+      className={`${inter.variable} ${oswald.variable} h-full antialiased scroll-smooth`}
     >
       <body className="flex min-h-full flex-col bg-white font-sans text-zinc-900">
         <LocalBusinessSchema />

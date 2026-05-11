@@ -14,8 +14,8 @@ export default async function BlogPage() {
   return (
     <div className="container py-24 min-h-[70vh]">
       <div className="max-w-3xl mb-16 text-center sm:text-left">
-        <h1 className="text-5xl sm:text-6xl text-gray-900 mb-6 tracking-tight">
-          <span className="font-serif italic font-normal text-gray-800">Blog</span> <span className="font-heading font-black uppercase text-caicara-yellow">Caiçara</span>
+        <h1 className="text-5xl sm:text-6xl font-heading font-black uppercase tracking-tight text-gray-900 mb-6">
+          BLOG <span className="text-caicara-yellow">CAIÇARA</span>
         </h1>
         <p className="text-gray-600 text-lg font-light leading-relaxed">
           Dicas de treino, nutrição e novidades da nossa comunidade para manter você sempre evoluindo.
