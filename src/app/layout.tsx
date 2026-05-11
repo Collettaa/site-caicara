@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Oswald } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -96,6 +97,15 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${inter.variable} ${oswald.variable} h-full antialiased scroll-smooth`}
     >
+      <head>
+        <Script
+          id="adsbygoogle-init"
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9835692283497091"
+          crossOrigin="anonymous"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body className="flex min-h-full flex-col bg-white font-sans text-zinc-900">
         <LocalBusinessSchema />
         <Header />
