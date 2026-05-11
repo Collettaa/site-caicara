@@ -26,7 +26,7 @@ const heroProofs = [
   },
   {
     value: "São Vicente",
-    label: "energia de bairro e litoral",
+    label: "Baixada santista, São viselva city",
   },
 ];
 
