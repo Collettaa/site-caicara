@@ -8,14 +8,12 @@ export default function BlogLayout({
   return (
     <>
       {/* Google AdSense Script - Carregado apenas na rota do blog e nos posts */}
-      {process.env.NEXT_PUBLIC_ADSENSE_ID && (
-        <Script
-          id="adsbygoogle-init"
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_ID}`}
-        />
-      )}
+      <Script
+        id="adsbygoogle-init"
+        strategy="afterInteractive"
+        crossOrigin="anonymous"
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9835692283497091"
+      />
       
       {children}
     </>

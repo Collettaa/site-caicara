@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    ...(process.env.NEXT_PUBLIC_ADSENSE_ID ? { "google-adsense-account": process.env.NEXT_PUBLIC_ADSENSE_ID } : {}),
+    "google-adsense-account": "ca-pub-9835692283497091",
   },
 };
 
