@@ -34,7 +34,7 @@ const pillars = [
   {
     title: "Acolhimento ativo",
     description:
-      "A equipe acompanha de perto, adapta o treino e cria espaço para quem está começando, voltando ou buscando mais constância.",
+      "A equipe acompanha de perto, adapta o treino e cria espaço para quem está começando, voltando ou buscando consistência.",
     icon: Heart,
   },
   {
@@ -53,7 +53,7 @@ const arrivalSteps = [
   {
     title: "Você conversa com a equipe",
     description:
-      "A primeira orientação entende seu momento, seu histórico e o tipo de rotina que precisa caber no seu dia.",
+      "A primeira orientação entende seu momento, seu histórico e o formato de treino que vai funcionar de verdade para você.",
     icon: MessageCircle,
   },
   {
@@ -73,7 +73,7 @@ const modalities = [
     eyebrow: "Dentro do box",
     title: "Funcional & Cross",
     description:
-      "Aulas com técnica, intensidade ajustável e presença da equipe para construir força de um jeito sustentável.",
+      "Movimentos precisos, carga adaptada ao seu nível e acompanhamento próximo para construir força de um jeito sustentável.",
     features: ["Força, mobilidade e condicionamento", "Escalas para iniciantes, retorno e evolução"],
     image: "/images/open-1.jpeg",
     alt: "Treino funcional e cross da Caiçara Fit",
@@ -81,7 +81,7 @@ const modalities = [
   {
     eyebrow: "Na areia",
     title: "Beach sports",
-    description: "Futevôlei e beach tennis entram como extensão natural da rotina: movimento, sol, técnica e convivência.",
+    description: "Futevôlei e beach tennis entram como extensão natural do seu treino: movimento, sol, técnica e convivência.",
     features: ["Futevôlei e beach tennis", "Clima esportivo sem perder leveza"],
     image: "/images/beach-sports-new.jpg",
     alt: "Aulas de beach sports da Caiçara Fit",
@@ -102,7 +102,7 @@ export default function Home() {
             className="scale-[1.02] object-cover object-center"
           />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,9,11,0.88)_0%,rgba(9,9,11,0.58)_48%,rgba(9,9,11,0.2)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,193,7,0.2),transparent_28%),linear-gradient(180deg,rgba(9,9,11,0.18),rgba(9,9,11,0.82))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,193,7,0.08),transparent_28%),linear-gradient(180deg,rgba(9,9,11,0.18),rgba(9,9,11,0.82))]" />
         </div>
 
         <div className="container px-4">
@@ -180,8 +180,8 @@ export default function Home() {
 
             <FadeIn delay={0.16}>
               <p className="max-w-2xl text-xl leading-relaxed text-zinc-600">
-                Mais do que uma academia em São Vicente, a Caiçara existe para deixar seu treino de cross e funcional mais humano: técnico o suficiente para gerar resultado, leve o
-                suficiente para caber na vida e próximo o bastante para você não atravessar o processo sozinho.
+                Mais do que uma academia em São Vicente, a Caiçara existe para deixar seu treino de cross e funcional mais humano: técnico o suficiente para gerar resultado, sustentável o
+                suficiente para se integrar ao seu dia a dia e próximo o bastante para você não atravessar o processo sozinho.
               </p>
             </FadeIn>
           </div>
@@ -236,7 +236,7 @@ export default function Home() {
                   Sem pressa para provar. Com direção para evoluir.
                 </h2>
                 <p className="mt-6 text-lg leading-relaxed text-zinc-300">
-                  A primeira semana é para sentir o ambiente da nossa academia, conversar com quem guia o treino de CrossFit ou funcional e perceber se a rotina
+                  A primeira semana é para sentir o ambiente da nossa academia, conhecer nossa metodologia de CrossFit ou funcional e perceber se a energia
                   da Caiçara combina com o que você quer construir.
                 </p>
               </FadeIn>
@@ -279,8 +279,8 @@ export default function Home() {
                   Escolha o ritmo. A equipe ajusta o caminho.
                 </h2>
                 <p className="mt-6 text-lg leading-relaxed text-zinc-600">
-                  O plano ideal nasce de uma conversa direta com o box. Você chega com seu momento; a equipe organiza
-                  uma entrada possível, segura e consistente.
+                  O formato ideal nasce entendendo o seu momento. Você traz seu objetivo; a equipe desenha o melhor caminho
+                  para uma entrada possível e segura.
                 </p>
                 <a
                   href={siteConfig.whatsappUrl}
@@ -363,11 +363,11 @@ export default function Home() {
                   Primeira semana por nossa conta
                 </span>
                 <h2 className="mt-5 font-heading text-4xl font-black uppercase leading-[0.98] tracking-[-0.035em] sm:text-6xl">
-                  Venha sentir se a Caiçara conversa com a sua rotina.
+                  Venha descobrir como a Caiçara se encaixa na sua vida.
                 </h2>
                 <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-300">
-                  Conheça a nossa academia, faça sua primeira aula de crosstraining ou funcional sem pressão e converse com a equipe sobre o melhor
-                  caminho para começar. Se fizer sentido, o próximo passo nasce junto.
+                  Conheça a nossa academia, faça sua primeira aula de crosstraining ou funcional sem pressão e sinta o clima do box.
+                  Se fizer sentido, a gente segue junto.
                 </p>
                 <a
                   href={siteConfig.trialWhatsappUrl}
