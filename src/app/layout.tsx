@@ -81,6 +81,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  other: {
+    ...(process.env.NEXT_PUBLIC_ADSENSE_ID ? { "google-adsense-account": process.env.NEXT_PUBLIC_ADSENSE_ID } : {}),
+  },
 };
 
 export default function RootLayout({
