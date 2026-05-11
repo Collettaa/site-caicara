@@ -14,13 +14,20 @@ export function Header() {
       <div className="container">
         <div className="flex h-20 items-center justify-between gap-4">
           <Link href="/" className="group flex items-center gap-3">
-            <Image
-              src="/images/logo.png"
-              alt="Logo da Caiçara Fit"
-              width={50}
-              height={50}
-              className="object-contain transition-transform group-hover:scale-105"
-            />
+            <div className="relative flex h-[50px] w-[50px] items-center justify-center transition-transform group-hover:scale-105">
+              <Image
+                src="/images/logo-normal.png"
+                alt="Logo da Caiçara Fit"
+                fill
+                className="object-contain transition-opacity duration-300 group-hover:opacity-0"
+              />
+              <Image
+                src="/images/logo-splash.png"
+                alt="Logo da Caiçara Fit Splash"
+                fill
+                className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              />
+            </div>
             <span className="hidden text-2xl font-heading font-black tracking-tighter text-foreground sm:inline-block">
               CAIÇARA<span className="text-caicara-yellow">FIT</span>
             </span>
