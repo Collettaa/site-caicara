@@ -87,7 +87,13 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between border-t border-gray-200 pt-8 text-xs text-gray-400 md:flex-row">
           <p>© {new Date().getFullYear()} Caiçara Fit. Todos os direitos reservados.</p>
-          <p className="mt-2 md:mt-0">Feito para o estilo de vida caiçara.</p>
+          <div className="mt-2 flex items-center gap-4 md:mt-0">
+            <Link href="/politica-de-privacidade" className="transition-colors hover:text-caicara-yellow">
+              Política de Privacidade
+            </Link>
+            <span className="text-gray-300">·</span>
+            <p>Feito para o estilo de vida caiçara.</p>
+          </div>
         </div>
       </div>
     </footer>
