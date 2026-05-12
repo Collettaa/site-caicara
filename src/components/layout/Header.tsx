@@ -19,13 +19,13 @@ export function Header() {
                 src="/images/logo-normal.png"
                 alt="Logo da Caiçara Fit"
                 fill
-                className="object-contain transition-opacity duration-300 group-hover:opacity-0"
+                className="object-contain mix-blend-multiply transition-opacity duration-300 group-hover:opacity-0"
               />
               <Image
                 src="/images/logo-splash.png"
                 alt="Logo da Caiçara Fit Splash"
                 fill
-                className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                className="absolute inset-0 object-contain mix-blend-multiply opacity-0 transition-opacity duration-300 group-hover:opacity-100"
               />
             </div>
             <span className="hidden text-2xl font-heading font-black tracking-tighter text-foreground sm:inline-block">
