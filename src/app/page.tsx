@@ -26,7 +26,7 @@ const heroProofs = [
   },
   {
     value: "São Vicente",
-    label: "Baixada santista, São viselva city",
+    label: "Baixada santista, São Vicente",
   },
 ];
 
@@ -109,7 +109,7 @@ export default function Home() {
           <div className="max-w-3xl">
             <FadeIn delay={0.08}>
               <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-caicara-yellow backdrop-blur-md">
-                Primeira semana grátis em São Vicente
+                Conheça nosso espaço em São Vicente
               </span>
             </FadeIn>
 
@@ -122,7 +122,7 @@ export default function Home() {
 
             <FadeIn delay={0.24}>
               <p className="mt-7 max-w-2xl text-lg leading-relaxed text-zinc-200 sm:text-xl">
-                CrossFit, crosstraining, funcional e beach sports para quem quer evoluir com orientação de perto, acolhimento real e
+                Treino funcional, crosstraining e beach sports para quem quer evoluir com orientação de perto, acolhimento real e
                 uma comunidade que faz a constância parecer mais natural.
               </p>
             </FadeIn>
@@ -135,7 +135,7 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="inline-flex h-14 items-center justify-center rounded-full bg-caicara-yellow px-8 text-sm font-bold uppercase tracking-[0.12em] text-black transition-transform hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  Agendar aula de cross grátis
+                  Agendar aula experimental
                   <ArrowRight className="ml-3 h-4 w-4" />
                 </a>
                 <Link
@@ -236,7 +236,7 @@ export default function Home() {
                   Sem pressa para provar. Com direção para evoluir.
                 </h2>
                 <p className="mt-6 text-lg leading-relaxed text-zinc-300">
-                  A primeira semana é para sentir o ambiente da nossa academia, conhecer nossa metodologia de CrossFit ou funcional e perceber se a energia
+                  A primeira semana é para sentir o ambiente da nossa academia, conhecer nossa metodologia de treino funcional e crosstraining e perceber se a energia
                   da Caiçara combina com o que você quer construir.
                 </p>
               </FadeIn>
@@ -360,7 +360,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-zinc-950/70" />
               <div className="relative mx-auto max-w-3xl">
                 <span className="text-sm font-semibold uppercase tracking-[0.22em] text-caicara-yellow">
-                  Primeira semana por nossa conta
+                  Venha conhecer o espaço
                 </span>
                 <h2 className="mt-5 font-heading text-4xl font-black uppercase leading-[0.98] tracking-[-0.035em] sm:text-6xl">
                   Venha descobrir como a Caiçara se encaixa na sua vida.

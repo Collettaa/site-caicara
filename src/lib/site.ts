@@ -11,7 +11,7 @@ export const siteConfig = {
   whatsappUrl:
     "https://api.whatsapp.com/send?phone=5513920013547&text=Olá! Gostaria de falar com a Caiçara Fit.",
   trialWhatsappUrl:
-    "https://api.whatsapp.com/send?phone=5513920013547&text=Olá! Gostaria de resgatar minha 1 semana de aula grátis!",
+    "https://api.whatsapp.com/send?phone=5513920013547&text=Olá! Gostaria de agendar minha aula experimental!",
   googleMapsUrl:
     "https://www.google.com/maps/search/?api=1&query=Cai%C3%A7ara%20Fit%20S%C3%A3o%20Vicente",
   googleReviewUrl: process.env.GOOGLE_PLACE_ID
@@ -31,7 +31,7 @@ export const siteConfig = {
 };
 
 export const navigationLinks = [
-  { href: "/#sobre", label: "Sobre" },
+  { href: "/sobre", label: "Sobre" },
   { href: "/#planos", label: "Planos" },
   { href: "/eventos", label: "Eventos" },
   { href: "/blog", label: "Blog" },

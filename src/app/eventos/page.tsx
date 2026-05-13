@@ -8,10 +8,10 @@ import { siteConfig } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Eventos e comunidade",
   description:
-    "Eventos da Caiçara Fit em São Vicente com CrossFit, beach sports, corrida e experiências que conectam treino, praia e comunidade.",
+    "Eventos da Caiçara Fit em São Vicente com crosstraining, beach sports, corrida e experiências que conectam treino, praia e comunidade.",
   keywords: [
     "eventos fitness em São Vicente",
-    "crossfit são vicente",
+    "crosstraining são vicente",
     "corrida caiçara fit",
     "beach sports são vicente",
   ],

@@ -22,17 +22,17 @@ const oswald = Oswald({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.siteUrl),
   title: {
-    default: "Caiçara Fit | Academia de CrossFit e Treino Funcional em São Vicente",
+    default: "Caiçara Fit | Academia de Crosstraining e Treino Funcional em São Vicente",
     template: "%s | Caiçara Fit",
   },
-  description: "Mais que uma academia em São Vicente. A Caiçara Fit oferece CrossFit, crosstraining, treino funcional e beach sports para você evoluir com constância.",
+  description: "Mais que uma academia em São Vicente. A Caiçara Fit oferece crosstraining, treino funcional e beach sports para você evoluir com constância.",
   applicationName: siteConfig.name,
   category: "fitness",
   keywords: [
     "academia em São Vicente",
     "academia em São Vicente SP",
-    "box de CrossFit em São Vicente",
-    "crossfit são vicente",
+    "box de crosstraining em São Vicente",
+    "crosstraining são vicente",
     "cross são vicente",
     "crosstraining são vicente",
     "treino funcional são vicente",
@@ -50,24 +50,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     url: "/",
-    title: "Caiçara Fit | Academia, CrossFit e crosstraining em São Vicente",
+    title: "Caiçara Fit | Academia, crosstraining e funcional em São Vicente",
     description:
-      "A melhor academia de CrossFit, crosstraining e funcional em São Vicente. Acolhimento real, eventos e rotina pensada para a sua evolução.",
+      "A melhor academia de crosstraining e funcional em São Vicente. Acolhimento real, eventos e rotina pensada para a sua evolução.",
     siteName: siteConfig.name,
     images: [
       {
         url: siteConfig.heroImage,
         width: 1200,
         height: 630,
-        alt: "Alunos da Caiçara Fit treinando CrossFit em São Vicente",
+        alt: "Alunos da Caiçara Fit treinando em São Vicente",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Caiçara Fit | Academia e CrossFit em São Vicente",
+    title: "Caiçara Fit | Academia e Crosstraining em São Vicente",
     description:
-      "Academia com CrossFit, crosstraining, treino funcional, beach sports e eventos em São Vicente.",
+      "Academia com crosstraining, treino funcional, beach sports e eventos em São Vicente.",
     images: [siteConfig.heroImage],
   },
   robots: {
@@ -99,7 +99,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-white font-sans text-zinc-900">
         <LocalBusinessSchema />
         <Header />
-        <main className="flex flex-1 flex-col">{children}</main>
+        <main className="flex flex-1 flex-col mt-6">{children}</main>
         <Footer />
         {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
       </body>

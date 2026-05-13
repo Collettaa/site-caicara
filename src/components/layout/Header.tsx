@@ -75,7 +75,7 @@ export function Header() {
         </div>
 
         {isMenuOpen ? (
-          <div id="mobile-menu" className="border-t border-zinc-100 py-4 md:hidden">
+          <div id="mobile-menu" className="border-t border-zinc-100 py-4 pb-8 md:hidden">
             <nav className="flex flex-col gap-2">
               {navigationLinks.map((link) => (
                 <Link
