@@ -13,6 +13,7 @@ import {
 import { FadeIn } from "@/components/animations/FadeIn";
 import { GoogleReviewsSection } from "@/components/home/GoogleReviewsSection";
 import { HomeEventsShowcase } from "@/components/home/HomeEventsShowcase";
+import { HomeBlogSection } from "@/components/home/HomeBlogSection";
 import { siteConfig } from "@/lib/site";
 
 const heroProofs = [
@@ -345,6 +346,7 @@ export default function Home() {
 
       <HomeEventsShowcase />
       <GoogleReviewsSection fallbackMapsUrl={siteConfig.googleMapsUrl} reviewUrl={siteConfig.googleReviewUrl} />
+      <HomeBlogSection />
 
       <section className="bg-white py-20 text-zinc-950 sm:py-28">
         <div className="container px-4">

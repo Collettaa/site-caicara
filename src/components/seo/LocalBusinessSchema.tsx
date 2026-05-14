@@ -50,16 +50,15 @@ export function LocalBusinessSchema() {
     ],
     hasMap: siteConfig.googleMapsUrl,
     knowsAbout: [
-      "CrossFit", 
+      "crosstraining", 
       "treino funcional", 
       "beach sports", 
       "futevôlei", 
       "beach tennis", 
       "condicionamento físico",
       "Cross",
-      "crosstraining",
       "academia",
-      "academia de crossfit"
+      "academia de crosstraining"
     ],
     sameAs: [siteConfig.instagramUrl, siteConfig.googleMapsUrl],
   };

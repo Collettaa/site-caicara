@@ -5,7 +5,10 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Blog",
-  description: "Artigos, dicas de treino e novidades da Caiçara Fit.",
+  description: "Artigos sobre treino funcional, crosstraining, beach sports e estilo de vida saudável em São Vicente e na Baixada Santista. Dicas da equipe Caiçara Fit.",
+  alternates: {
+    canonical: "/blog",
+  },
 };
 
 export default async function BlogPage() {
