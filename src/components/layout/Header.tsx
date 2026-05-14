@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Menu, MessageCircle, X } from "lucide-react";
 import { useState } from "react";
 import { navigationLinks, siteConfig } from "@/lib/site";
+import logoNormal from "../../../public/images/logo-normal.png";
+import logoSplash from "../../../public/images/logo-splash.png";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,15 +18,17 @@ export function Header() {
           <Link href="/" className="group flex items-center gap-3">
             <div className="relative flex h-[50px] w-[50px] items-center justify-center transition-transform group-hover:scale-105">
               <Image
-                src="/images/logo-normal.png"
+                src={logoNormal}
                 alt="Logo da Caiçara Fit"
                 fill
+                sizes="50px"
                 className="object-contain mix-blend-multiply transition-opacity duration-300 group-hover:opacity-0"
               />
               <Image
-                src="/images/logo-splash.png"
+                src={logoSplash}
                 alt="Logo da Caiçara Fit Splash"
                 fill
+                sizes="50px"
                 className="absolute inset-0 object-contain mix-blend-multiply opacity-0 transition-opacity duration-300 group-hover:opacity-100"
               />
             </div>
