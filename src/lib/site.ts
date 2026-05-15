@@ -1,6 +1,7 @@
 export const siteConfig = {
   name: "Caiçara Fit",
   siteUrl: "https://caicara.store",
+  adsensePublisherId: "ca-pub-9835692283497091",
   heroImage: "/images/hero-group.jpg",
   instagramUrl: "https://instagram.com/caicarafit013",
   instagramHandle: "@caicarafit013",
@@ -35,4 +36,5 @@ export const navigationLinks = [
   { href: "/#planos", label: "Planos" },
   { href: "/eventos", label: "Eventos" },
   { href: "/blog", label: "Blog" },
+  { href: "/contato", label: "Contato" },
 ] as const;

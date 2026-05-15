@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Oswald } from "next/font/google";
+import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
@@ -82,7 +83,7 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    "google-adsense-account": "ca-pub-9835692283497091",
+    "google-adsense-account": siteConfig.adsensePublisherId,
   },
 };
 
@@ -96,6 +97,12 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${inter.variable} ${oswald.variable} h-full antialiased scroll-smooth`}
     >
+      <Script
+        id="adsbygoogle-init"
+        strategy="beforeInteractive"
+        crossOrigin="anonymous"
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.adsensePublisherId}`}
+      />
       <body className="flex min-h-full flex-col bg-white font-sans text-zinc-900">
         <LocalBusinessSchema />
         <Header />
