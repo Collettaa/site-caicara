@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import {
+  asaasEnabled,
+  createPixCharge,
+  isValidCpf,
   listInscricoes,
   normalizeWhatsapp,
   notifyInscricao,
@@ -37,7 +40,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Escolhe como você vem pra aula." }, { status: 400 });
   }
 
-  const inscricao = { nome, whatsapp, vinculo, criadoEm: new Date().toISOString() };
+  const cpf = typeof body.cpf === "string" ? body.cpf : "";
+  const cobrarPix = vinculo === "avulsa" && asaasEnabled();
+  if (cobrarPix && !isValidCpf(cpf)) {
+    return NextResponse.json({ error: "Confere o CPF. Ele é pedido só para gerar o Pix." }, { status: 400 });
+  }
+
+  let pix = null;
+  if (cobrarPix) {
+    try {
+      pix = await createPixCharge(nome, cpf, whatsapp);
+    } catch (error) {
+      console.error("aulao-rosa: falha ao gerar Pix", error);
+    }
+  }
+
+  const inscricao = {
+    nome,
+    whatsapp,
+    vinculo,
+    criadoEm: new Date().toISOString(),
+    ...(pix ? { pagamentoId: pix.paymentId } : {}),
+  };
 
   try {
     await saveInscricao(inscricao);
@@ -49,5 +73,5 @@ export async function POST(request: Request) {
   const total = (await listInscricoes()).length;
   await notifyInscricao(inscricao, total);
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, pix });
 }
