@@ -34,6 +34,7 @@ export const siteConfig = {
 export const navigationLinks = [
   { href: "/sobre", label: "Sobre" },
   { href: "/#planos", label: "Planos" },
+  { href: "/aulao-rosa", label: "Aulão Rosa" },
   { href: "/eventos", label: "Eventos" },
   { href: "/blog", label: "Blog" },
   { href: "/contato", label: "Contato" },

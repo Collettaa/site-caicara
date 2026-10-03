@@ -6,6 +6,13 @@ services:
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
       - GOOGLE_PLACE_ID=${GOOGLE_PLACE_ID}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - EVOLUTION_URL=${EVOLUTION_URL}
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
+      - EVOLUTION_INSTANCE=${EVOLUTION_INSTANCE}
+      - AVISO_WHATSAPP=${AVISO_WHATSAPP}
+      - AULAO_LISTA_KEY=${AULAO_LISTA_KEY}
+    volumes:
+      - site_caicara_data:/app/data
     networks:
       - CaicaraNet
     healthcheck:
@@ -38,6 +45,9 @@ services:
         - traefik.http.routers.caicara-site-www.service=caicara-site
         - traefik.http.services.caicara-site.loadbalancer.server.port=3000
         - traefik.http.services.caicara-site.loadbalancer.passHostHeader=true
+
+volumes:
+  site_caicara_data:
 
 networks:
   CaicaraNet:

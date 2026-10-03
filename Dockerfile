@@ -37,8 +37,8 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 
 # Configura as pastas do Standalone
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN mkdir .next data
+RUN chown nextjs:nodejs .next data
 
 # Copia os arquivos necessários pro standalone
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -50,5 +50,6 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV DATA_DIR=/app/data
 
 CMD ["node", "server.js"]
