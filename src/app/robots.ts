@@ -13,7 +13,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/aulao-rosa/inscritos"],
+        disallow: ["/api/", "/aulao-rosa/inscritos", "/admin"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
