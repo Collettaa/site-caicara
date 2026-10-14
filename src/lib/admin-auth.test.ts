@@ -35,6 +35,13 @@ describe("sessão do admin", () => {
     expect(sessaoValida(valor, agora)).toBe(false);
   });
 
+  it("trocar ADMIN_SENHA desloga quem já entrou", () => {
+    const valor = assinarSessao(agora);
+    vi.stubEnv("ADMIN_SENHA", "senha-nova");
+    expect(sessaoValida(valor, agora)).toBe(false);
+    expect(sessaoValida(assinarSessao(agora), agora)).toBe(true);
+  });
+
   it("sem cookie ou sem segredo não vale", () => {
     expect(sessaoValida(undefined, agora)).toBe(false);
     expect(sessaoValida("", agora)).toBe(false);
@@ -58,6 +65,22 @@ describe("conferirSenha", () => {
     expect(conferirSenha("senha-certa", ip, agora)).toBe("travado");
     expect(conferirSenha("senha-certa", "3.3.3.3", agora)).toBe("ok");
     expect(conferirSenha("senha-certa", ip, new Date(agora.getTime() + 15 * MIN))).toBe("ok");
+  });
+
+  it("20 erros em 15 min somando IPs travam todo mundo até passar a janela", () => {
+    const agora = new Date("2026-10-15T12:00:00Z");
+    for (let i = 0; i < 20; i++) expect(conferirSenha("x", `10.0.${i}.1`, agora)).toBe("errada");
+    expect(conferirSenha("senha-certa", "10.9.9.9", agora)).toBe("travado");
+    expect(conferirSenha("senha-certa", "10.9.9.9", new Date(agora.getTime() + 16 * MIN))).toBe("ok");
+  });
+
+  it("erro antigo expira: erros espalhados no tempo não somam por IP", () => {
+    const agora = new Date("2026-10-16T12:00:00Z").getTime();
+    const ip = "6.6.6.6";
+    for (let i = 0; i < 4; i++) conferirSenha("x", ip, new Date(agora));
+    const depois = agora + 16 * MIN;
+    for (let i = 0; i < 4; i++) expect(conferirSenha("x", ip, new Date(depois))).toBe("errada");
+    expect(conferirSenha("senha-certa", ip, new Date(depois))).toBe("ok");
   });
 
   it("sem ADMIN_SENHA ou sem ADMIN_COOKIE_SECRET sempre recusa", () => {

@@ -232,7 +232,7 @@ describe("POST /api/loja/pedidos", () => {
     const ip = (v: string) => ({ headers: { "Content-Type": "application/json", "x-forwarded-for": v } });
     for (let i = 0; i < 5; i++) {
       const corpo = corpoPedido({ whatsapp: `(13) 99999-000${i}`, itens: [{ variacaoId: babyM, qtd: 1 }] });
-      expect((await POST(req("/api/loja/pedidos", corpo, ip("1.2.3.4, 10.0.0.1")))).status).toBe(200);
+      expect((await POST(req("/api/loja/pedidos", corpo, ip(`10.0.0.${i}, 1.2.3.4`)))).status).toBe(200);
     }
     const sexto = corpoPedido({ whatsapp: "(13) 99999-0009", itens: [{ variacaoId: babyP, qtd: 1 }] });
     const r = await POST(req("/api/loja/pedidos", sexto, ip("1.2.3.4")));

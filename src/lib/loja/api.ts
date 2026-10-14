@@ -2,6 +2,7 @@
 
 import type { DatabaseSync } from "node:sqlite";
 import { NextResponse } from "next/server";
+import { ipDoCliente } from "@/lib/ip";
 import { criarCobranca } from "./cobranca";
 import { ErroLoja, salvarCobranca, type PedidoComItens } from "./pedidos";
 
@@ -73,9 +74,9 @@ const memoria = globalThis as typeof globalThis & {
   __lojaUltimaConsulta?: Map<string, number>;
 };
 
-/** IP do cliente: primeiro valor de x-forwarded-for (Traefik), senão "local". */
+/** IP do cliente (ver `ipDoCliente`). */
 export function ipDe(request: Request): string {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  return ipDoCliente(request.headers);
 }
 
 /** Conta uma tentativa do IP. `false` = já fez 5 na última hora (essa não conta). */

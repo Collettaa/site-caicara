@@ -3,12 +3,12 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { COOKIE_ADMIN, SESSAO_MS, assinarSessao, conferirSenha } from "@/lib/admin-auth";
+import { ipDoCliente } from "@/lib/ip";
 
 export type EstadoLogin = { erro: string } | null;
 
 async function ipDoPedido(): Promise<string> {
-  const encaminhado = (await headers()).get("x-forwarded-for");
-  return encaminhado?.split(",")[0]?.trim() || "local";
+  return ipDoCliente(await headers());
 }
 
 export async function entrarAction(_anterior: EstadoLogin, formData: FormData): Promise<EstadoLogin> {
