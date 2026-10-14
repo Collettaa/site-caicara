@@ -9,7 +9,7 @@ export function ProdutoCard({ produto, destaque = false }: { produto: ProdutoCom
   return (
     <Link href={`/loja/${produto.slug}`} className="group block focus-visible:outline-none">
       <div className="relative mt-8 overflow-visible">
-        <div className="aspect-[4/5] overflow-hidden bg-zinc-200 group-focus-visible:ring-4 group-focus-visible:ring-black">
+        <div className="aspect-[11/10] overflow-hidden bg-zinc-200 group-focus-visible:ring-4 group-focus-visible:ring-black">
           {foto ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

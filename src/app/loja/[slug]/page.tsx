@@ -43,14 +43,22 @@ export default async function ProdutoPage({ params }: Props) {
           {/* Galeria: no celular arrasta pro lado; no computador, uma embaixo da outra. */}
           <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:overflow-visible lg:px-0">
             {produto.fotos.map((foto, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <a
                 key={foto}
-                src={foto}
-                alt={`${produto.nome}, foto ${i + 1}`}
-                loading={i === 0 ? "eager" : "lazy"}
-                className="aspect-[4/5] w-[85%] shrink-0 snap-center bg-zinc-200 object-cover lg:w-full"
-              />
+                href={foto}
+                target="_blank"
+                rel="noopener"
+                aria-label={`Abrir foto ${i + 1} de ${produto.nome} em tela cheia`}
+                className="w-[88%] shrink-0 snap-center focus-visible:outline focus-visible:outline-4 focus-visible:outline-black lg:w-full"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={foto}
+                  alt={`${produto.nome}, foto ${i + 1}`}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  className="aspect-square w-full bg-white object-contain"
+                />
+              </a>
             ))}
           </div>
 
