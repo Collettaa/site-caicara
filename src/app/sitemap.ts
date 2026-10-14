@@ -1,6 +1,30 @@
 import { MetadataRoute } from "next";
 import { getBlogPosts } from "@/lib/blog";
-import { siteConfig } from "@/lib/site";
+import { getDb } from "@/lib/loja/db";
+import { listarAtivos } from "@/lib/loja/produtos";
+import { lojaNoMenu, siteConfig } from "@/lib/site";
+
+// Produtos da loja mudam sem rebuild.
+export const dynamic = "force-dynamic";
+
+function rotasDaLoja(baseUrl: string): MetadataRoute.Sitemap {
+  if (!lojaNoMenu) return [];
+  let produtos: { slug: string }[] = [];
+  try {
+    produtos = listarAtivos(getDb());
+  } catch (e) {
+    console.error("sitemap: falha ao ler produtos da loja", e instanceof Error ? e.message : e);
+  }
+  return [
+    { url: `${baseUrl}/loja`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    ...produtos.map((p) => ({
+      url: `${baseUrl}/loja/${p.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
+  ];
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.siteUrl;
@@ -58,5 +82,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...blogRoutes];
+  return [...staticRoutes, ...rotasDaLoja(baseUrl), ...blogRoutes];
 }

@@ -31,11 +31,15 @@ export const siteConfig = {
   },
 };
 
+/** Loja no menu e no sitemap só com LOJA_NO_MENU=1 (lido no build: ver `env` em next.config.ts). */
+export const lojaNoMenu = process.env.LOJA_NO_MENU === "1";
+
 export const navigationLinks = [
   { href: "/sobre", label: "Sobre" },
   { href: "/#planos", label: "Planos" },
   { href: "/aulao-rosa", label: "Aulão Rosa" },
   { href: "/eventos", label: "Eventos" },
+  ...(lojaNoMenu ? [{ href: "/loja", label: "Loja" }] : []),
   { href: "/blog", label: "Blog" },
   { href: "/contato", label: "Contato" },
-] as const;
+];

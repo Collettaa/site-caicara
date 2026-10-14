@@ -5,6 +5,10 @@ const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // O Header é client component: a flag precisa ir no bundle para servidor e navegador concordarem.
+  env: {
+    LOJA_NO_MENU: process.env.LOJA_NO_MENU ?? "",
+  },
   outputFileTracingRoot: rootDir,
   async redirects() {
     return [
