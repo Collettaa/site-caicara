@@ -363,6 +363,19 @@ describe("POST /api/loja/pedidos/[codigo] reativar", () => {
     expect(estoque(babyP)).toBe(0);
   });
 
+  it("cancelar a antiga falhou e ela não foi paga → 502 sem reativar nem cobrar de novo", async () => {
+    const codigo = await criarExpirado();
+    falhar = (metodo) => metodo === "DELETE";
+    statusPagamento = "PENDING";
+    const clientes = () => chamadas.filter((c) => c.metodo === "POST" && c.url.endsWith("/customers")).length;
+    const antes = clientes();
+    const r = await reativarReq(codigo);
+    expect(r.status).toBe(502);
+    expect(clientes()).toBe(antes);
+    expect(buscarPorCodigo(db, codigo)!).toMatchObject({ status: "expirado", asaasId: "pay_1" });
+    expect(estoque(babyP)).toBe(1);
+  });
+
   it("cancelar e consultar a antiga falharam → 502 sem reativar", async () => {
     const codigo = await criarExpirado();
     falhar = (metodo, caminho) => metodo === "DELETE" || caminho.startsWith("/payments/");

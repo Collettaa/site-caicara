@@ -86,7 +86,8 @@ export async function POST(request: Request, { params }: Contexto) {
   const bloqueio = barreira(db, request, atual.whatsapp);
   if (bloqueio) return bloqueio;
 
-  // Cobrança antiga: cancela antes de gerar outra. Não deu pra cancelar → pode ter sido paga; confere.
+  // Cobrança antiga: cancela antes de gerar outra (404 conta como cancelada). Não deu pra cancelar →
+  // confere se foi paga; pago → marca pago; senão 502 sem cobrança nova.
   if (atual.asaasId || atual.asaasParcelamentoId) {
     try {
       await cancelarCobranca(atual);
@@ -100,8 +101,9 @@ export async function POST(request: Request, { params }: Contexto) {
         }
       } catch (e2) {
         console.error(`loja: consultar cobrança antiga do pedido ${atual.id} falhou`, paraLog(e2));
-        return erro(ERRO_PAGAMENTO, 502);
       }
+      // Antiga continua aberta: nunca duas cobranças abertas para o mesmo pedido.
+      return erro(ERRO_PAGAMENTO, 502);
     }
   }
 
