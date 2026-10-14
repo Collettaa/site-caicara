@@ -134,7 +134,8 @@ export function mensagensDevidas(
   if (pedido.status === "aguardando" && comCobranca) devidas.push("recebido");
   if (lembreteOk && agora.getTime() >= criado + HORA_MS) devidas.push("lembrete1h");
   if (lembreteOk && agora.getTime() >= criado + 24 * HORA_MS && enviado("lembrete1h")) devidas.push("lembrete24h");
-  if (pago) devidas.push("pago", "aviso_venda");
+  // Pedido que passou por "pago sem peça" já teve o aviso ao dono; ao virar entregue não repete a venda.
+  if (pago && !registro.has("aviso_sem_peca")) devidas.push("pago", "aviso_venda");
   if (pedido.status === "pago_sem_peca") devidas.push("aviso_sem_peca");
 
   // A janela 8h–21h vale só para os lembretes. Recebido e pago respondem ao que o cliente acabou de

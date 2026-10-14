@@ -101,6 +101,16 @@ describe("mensagensDevidas", () => {
     expect(mensagensDevidas(semPeca, [], new Date("2026-10-15T02:00:00.000Z"), ok)).toEqual(["aviso_sem_peca"]);
   });
 
+  it("pago sem peça que virou entregue: não manda pago nem aviso_venda (o dono já foi avisado)", () => {
+    const p = pedido({ status: "entregue", pagoEm: horas(0.5).toISOString(), entregueEm: horas(30).toISOString() });
+    expect(mensagensDevidas(p, [enviada("recebido"), enviada("aviso_sem_peca")], horas(30), ok)).toEqual([]);
+    // Mesmo se o aviso_sem_peca só ficou registrado como tentativa.
+    const tentou: Enviada[] = [enviada("recebido"), { tipo: "aviso_sem_peca", tentativas: 3, enviadaEm: null }];
+    expect(mensagensDevidas(p, tentou, horas(30), ok)).toEqual([]);
+    // Sem o registro, entregue segue mandando pago e aviso_venda.
+    expect(mensagensDevidas(p, [enviada("recebido")], horas(30), ok)).toEqual(["pago", "aviso_venda"]);
+  });
+
   it("ignora tipo que já falhou 3 vezes; tenta de novo com menos", () => {
     const p = pedido({ status: "pago" });
     const falhou = (tentativas: number): Enviada[] => [
