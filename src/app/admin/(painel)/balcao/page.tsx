@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { exigirAdmin } from "@/lib/admin-auth";
 import { getDb } from "@/lib/loja/db";
 import { listarTodos } from "@/lib/loja/produtos";
 import { FormBalcao, type ProdutoBalcao } from "./FormBalcao";
@@ -6,7 +7,8 @@ import { FormBalcao, type ProdutoBalcao } from "./FormBalcao";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Balcão" };
 
-export default function BalcaoPage() {
+export default async function BalcaoPage() {
+  await exigirAdmin();
   // Vende o que tem na prateleira, mesmo de produto oculto na loja.
   const produtos: ProdutoBalcao[] = listarTodos(getDb())
     .map((p) => ({

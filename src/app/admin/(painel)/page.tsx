@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { exigirAdmin } from "@/lib/admin-auth";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, MessageCircle } from "lucide-react";
 import { reais } from "@/components/loja/reais";
@@ -49,6 +50,7 @@ export default async function PedidosPage({
 }: {
   searchParams: Promise<{ aba?: string; msg?: string; erro?: string; ajuste?: string }>;
 }) {
+  await exigirAdmin();
   const sp = await searchParams;
   const aba = abaValida(sp.aba);
   // Só códigos conhecidos viram texto; nada da URL é exibido literal.

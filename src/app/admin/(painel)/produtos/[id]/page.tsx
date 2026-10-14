@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { exigirAdmin } from "@/lib/admin-auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
@@ -26,6 +27,7 @@ function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode
 }
 
 export default async function ProdutoAdminPage({ params }: { params: Promise<{ id: string }> }) {
+  await exigirAdmin();
   const { id } = await params;
   const novo = id === "novo";
   const produto = novo ? null : /^\d+$/.test(id) ? buscarPorId(getDb(), Number(id)) : null;

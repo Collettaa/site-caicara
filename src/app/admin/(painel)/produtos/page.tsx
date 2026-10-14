@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { exigirAdmin } from "@/lib/admin-auth";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { precoLinha } from "@/components/loja/reais";
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Produtos" };
 
-export default function ProdutosPage() {
+export default async function ProdutosPage() {
+  await exigirAdmin();
   const produtos = listarTodos(getDb());
 
   return (
