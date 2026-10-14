@@ -348,7 +348,9 @@ export function reativar(db: DatabaseSync, codigo: string, agora: Date): Pedido 
 
 /**
  * Pagamento confirmado. Idempotente: já pago/entregue/pago_sem_peca → `mudou: false`.
- * Expirado ou cancelado: reserva de novo se houver estoque (`pago`); senão `pago_sem_peca`, sem baixar nada.
+ * Cancelado depois de pago (`pagoEm` preenchido) → `mudou: false`, nada muda (o dono já decidiu).
+ * Expirado ou cancelado antes de pagar: reserva de novo se houver estoque (`pago`); senão `pago_sem_peca`,
+ * sem baixar nada.
  */
 export function marcarPago(
   db: DatabaseSync,
@@ -361,7 +363,7 @@ export function marcarPago(
     let status: StatusPedido;
     if (p.status === "aguardando") {
       status = "pago";
-    } else if (p.status === "expirado" || p.status === "cancelado") {
+    } else if (p.status === "expirado" || (p.status === "cancelado" && p.pagoEm === null)) {
       if (temEstoquePara(db, p.id)) {
         rebaixar(db, p.id);
         status = "pago";
@@ -381,16 +383,25 @@ export function marcarPago(
   });
 }
 
-/** Cliente retirou a peça. Vale para `pago` e `pago_sem_peca` (resolvido com troca); já entregue não muda. */
-export function marcarEntregue(db: DatabaseSync, id: number, agora: Date): Pedido {
+/**
+ * Cliente retirou a peça. Vale para `pago` e `pago_sem_peca`; já entregue não muda.
+ * `pago_sem_peca`: se a peça original voltou ao estoque, baixa agora. Se não, entrega mesmo assim e
+ * devolve `ajusteManual: true` — o dono trocou o tamanho e precisa tirar a peça entregue com o botão −.
+ */
+export function marcarEntregue(db: DatabaseSync, id: number, agora: Date): { pedido: Pedido; ajusteManual: boolean } {
   return transacao(db, () => {
     const p = pedidoPorId(db, id);
-    if (p.status === "entregue") return p;
+    if (p.status === "entregue") return { pedido: p, ajusteManual: false };
     if (p.status !== "pago" && p.status !== "pago_sem_peca") {
       throw new ErroLoja("status", "Só dá pra entregar pedido pago.");
     }
+    let ajusteManual = false;
+    if (p.status === "pago_sem_peca") {
+      if (temEstoquePara(db, p.id)) rebaixar(db, p.id);
+      else ajusteManual = true;
+    }
     db.prepare("UPDATE pedidos SET status = 'entregue', entregue_em = ? WHERE id = ?").run(agora.toISOString(), id);
-    return pedidoPorId(db, id);
+    return { pedido: pedidoPorId(db, id), ajusteManual };
   });
 }
 

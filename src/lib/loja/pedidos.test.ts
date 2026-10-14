@@ -248,6 +248,25 @@ describe("marcarPago", () => {
     expect(estoque(babyP)).toBe(0);
   });
 
+  it("pago → dono cancela → pagamento chega de novo: mudou false, continua cancelado", () => {
+    const p = pedido(babyP, 1, "cartao1");
+    marcarPago(db, p.codigo, 6800, min(5));
+    cancelar(db, p.id);
+    expect(estoque(babyP)).toBe(1);
+    const r = marcarPago(db, p.codigo, 6800, min(10));
+    expect(r.mudou).toBe(false);
+    expect(r.pedido.status).toBe("cancelado");
+    expect(estoque(babyP)).toBe(1);
+  });
+
+  it("cancelado antes de pagar e o pagamento chega → pago", () => {
+    const p = pedido(babyP);
+    cancelar(db, p.id);
+    const r = marcarPago(db, p.codigo, null, min(10));
+    expect(r).toMatchObject({ mudou: true, pedido: { status: "pago" } });
+    expect(estoque(babyP)).toBe(0);
+  });
+
   it("código desconhecido → nao_encontrado", () => {
     expect(pegaErro(() => marcarPago(db, "xxx", null, T0)).codigo).toBe("nao_encontrado");
   });
@@ -292,7 +311,32 @@ describe("entrega, cancelamento e balcão", () => {
     const p = pedido(babyM);
     marcarPago(db, p.codigo, null, min(5));
     const e = marcarEntregue(db, p.id, min(60 * 24));
-    expect(e).toMatchObject({ status: "entregue", entregueEm: min(60 * 24).toISOString() });
+    expect(e.ajusteManual).toBe(false);
+    expect(e.pedido).toMatchObject({ status: "entregue", entregueEm: min(60 * 24).toISOString() });
+    expect(estoque(babyM)).toBe(4);
+  });
+
+  it("marcarEntregue de pago_sem_peca com a peça de volta → baixa o estoque, sem ajuste manual", () => {
+    const p = pedido(babyP);
+    expirarVencidos(db, min(60));
+    const outro = pedido(babyP, 1, "pix", min(61));
+    marcarPago(db, p.codigo, null, min(70));
+    cancelar(db, outro.id); // peça volta ao estoque
+    expect(estoque(babyP)).toBe(1);
+    const e = marcarEntregue(db, p.id, min(80));
+    expect(e).toMatchObject({ ajusteManual: false, pedido: { status: "entregue" } });
+    expect(estoque(babyP)).toBe(0);
+  });
+
+  it("marcarEntregue de pago_sem_peca sem estoque → entrega e pede ajuste manual", () => {
+    const p = pedido(babyP);
+    expirarVencidos(db, min(60));
+    pedido(babyP, 1, "pix", min(61));
+    marcarPago(db, p.codigo, null, min(70));
+    const e = marcarEntregue(db, p.id, min(80));
+    expect(e).toMatchObject({ ajusteManual: true, pedido: { status: "entregue" } });
+    expect(estoque(babyP)).toBe(0);
+    expect(estoque(babyM)).toBe(5);
   });
 
   it("marcarEntregue de pedido aguardando → status", () => {
