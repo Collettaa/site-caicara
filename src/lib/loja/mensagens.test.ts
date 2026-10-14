@@ -46,22 +46,34 @@ describe("dentroDaJanela", () => {
 });
 
 describe("mensagensDevidas", () => {
-  it("sem aceitaMsgs, expirado há 2h: só o recebido, e só se ainda não foi", () => {
-    expect(mensagensDevidas(pedido(), [], horas(2), ok)).toEqual(["recebido"]);
-    expect(mensagensDevidas(pedido(), [enviada("recebido")], horas(2), ok)).toEqual([]);
+  it("recebido só com o pedido aguardando e com cobrança criada; uma vez só", () => {
+    const p = pedido({ status: "aguardando" });
+    expect(mensagensDevidas(p, [], horas(0.1), ok)).toEqual(["recebido"]);
+    expect(mensagensDevidas(p, [enviada("recebido")], horas(0.1), ok)).toEqual([]);
+    expect(mensagensDevidas(pedido({ status: "aguardando", asaasId: null }), [], horas(0.1), ok)).toEqual([]);
+    expect(mensagensDevidas(pedido({ status: "expirado" }), [], horas(2), ok)).toEqual([]);
   });
 
-  it("com aceitaMsgs: lembrete de 1h; sem estoque ou com outro pedido pago depois, nada", () => {
+  it("com aceitaMsgs, expirado há 2h: lembrete de 1h; sem estoque ou com outro pedido pago depois, nada", () => {
     const p = pedido({ aceitaMsgs: true });
     const ja = [enviada("recebido")];
+    expect(mensagensDevidas(pedido(), ja, horas(2), ok)).toEqual([]); // sem aceitaMsgs
     expect(mensagensDevidas(p, ja, horas(2), ok)).toEqual(["lembrete1h"]);
     expect(mensagensDevidas(p, ja, horas(2), { temEstoque: false, pagouOutroDepois: false })).toEqual([]);
     expect(mensagensDevidas(p, ja, horas(2), { temEstoque: true, pagouOutroDepois: true })).toEqual([]);
   });
 
   it("lembrete de 1h não sai antes de 1h", () => {
-    const p = pedido({ aceitaMsgs: true, status: "aguardando" });
+    const p = pedido({ aceitaMsgs: true });
     expect(mensagensDevidas(p, [enviada("recebido")], new Date(T0.getTime() + 59 * 60_000), ok)).toEqual([]);
+  });
+
+  it("lembretes só com o pedido expirado e com cobrança (reativado e aguardando não recebe)", () => {
+    const ja = [enviada("recebido")];
+    expect(mensagensDevidas(pedido({ aceitaMsgs: true, status: "aguardando" }), ja, horas(2), ok)).toEqual([]);
+    expect(mensagensDevidas(pedido({ aceitaMsgs: true, asaasId: null }), ja, horas(2), ok)).toEqual([]);
+    const com1h = [...ja, enviada("lembrete1h")];
+    expect(mensagensDevidas(pedido({ aceitaMsgs: true, status: "aguardando" }), com1h, horas(25), ok)).toEqual([]);
   });
 
   it("25h depois com lembrete1h enviado: lembrete24h; às 22h, nada", () => {
@@ -79,9 +91,12 @@ describe("mensagensDevidas", () => {
     expect(mensagensDevidas(p, [...ja, enviada("pago"), enviada("aviso_venda")], horas(1), ok)).toEqual([]);
   });
 
-  it("fora da janela só o aviso ao dono sai", () => {
+  it("fora da janela: recebido, pago e avisos saem; lembrete não", () => {
+    const noite = new Date("2026-10-15T02:00:00.000Z"); // 23h em SP
     const p = pedido({ status: "pago" });
-    expect(mensagensDevidas(p, [], new Date("2026-10-15T02:00:00.000Z"), ok)).toEqual(["aviso_venda"]);
+    expect(mensagensDevidas(p, [], noite, ok)).toEqual(["pago", "aviso_venda"]);
+    expect(mensagensDevidas(pedido({ status: "aguardando" }), [], noite, ok)).toEqual(["recebido"]);
+    expect(mensagensDevidas(pedido({ aceitaMsgs: true }), [enviada("recebido")], noite, ok)).toEqual([]);
     const semPeca = pedido({ status: "pago_sem_peca" });
     expect(mensagensDevidas(semPeca, [], new Date("2026-10-15T02:00:00.000Z"), ok)).toEqual(["aviso_sem_peca"]);
   });

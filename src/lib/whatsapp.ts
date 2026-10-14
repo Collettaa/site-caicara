@@ -9,7 +9,7 @@ export async function enviarWhatsapp(numero: string, texto: string): Promise<boo
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: EVOLUTION_API_KEY },
       body: JSON.stringify({ number: numero, text: texto }),
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(30_000),
     });
     if (!response.ok) {
       console.error(`whatsapp: envio falhou com status ${response.status}`);

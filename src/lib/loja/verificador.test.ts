@@ -162,6 +162,52 @@ describe("rodarCiclo", () => {
     expect(msgs(sim.id).map((m) => m.tipo)).toEqual(["lembrete1h", "recebido"]);
   });
 
+  it("Pix pago aos 58 min com webhook atrasado: confere pagamento antes de expirar", async () => {
+    const p = pedido(babyP);
+    deps.consultarPagamento.mockResolvedValue({ pago: true, liquido: 6400 });
+    await rodarCiclo(db, min(61), deps);
+    expect(buscarPorCodigo(db, p.codigo)!.status).toBe("pago");
+    expect(deps.cancelarCobranca).not.toHaveBeenCalled();
+  });
+
+  it("cancelar cobrança falhou ao expirar: confere de novo e, se pagou, marca pago", async () => {
+    const p = pedido(babyP);
+    deps.consultarPagamento.mockResolvedValueOnce({ pago: false, liquido: null });
+    deps.consultarPagamento.mockResolvedValue({ pago: true, liquido: 6400 });
+    deps.cancelarCobranca.mockRejectedValue(new Error("Asaas: pagamento já recebido"));
+    await rodarCiclo(db, min(61), deps);
+    expect(buscarPorCodigo(db, p.codigo)!.status).toBe("pago");
+    const estoque = db.prepare("SELECT estoque FROM variacoes WHERE id = ?").get(babyP) as { estoque: number };
+    expect(estoque.estoque).toBe(0);
+  });
+
+  it("rodada repetida usa relógio novo", async () => {
+    const p = pedido(babyM);
+    let agora = min(5);
+    const relogio = () => agora;
+    let segunda: Promise<void> | undefined;
+    deps.enviarWhatsapp.mockImplementation(async (numero: string, texto: string) => {
+      envios.push({ numero, texto });
+      if (!segunda) {
+        agora = min(61);
+        segunda = rodarCiclo(db, relogio, deps); // webhook chega com a rodada correndo
+      }
+      return true;
+    });
+    await rodarCiclo(db, relogio, deps);
+    await segunda;
+    expect(buscarPorCodigo(db, p.codigo)!.status).toBe("expirado");
+  });
+
+  it("lembrete não vai se o mesmo WhatsApp tem pedido pago sem peça depois", async () => {
+    const p = pedido(babyM, "5513977777777", T0, true);
+    await rodarCiclo(db, min(5), deps);
+    const outro = pedido(babyM, "5513977777777", min(20));
+    db.prepare("UPDATE pedidos SET status = 'pago_sem_peca' WHERE id = ?").run(outro.id);
+    await rodarCiclo(db, min(65), deps);
+    expect(msgs(p.id).map((m) => m.tipo)).toEqual(["recebido"]);
+  });
+
   it("lembrete não vai se a peça esgotou", async () => {
     const p = pedido(babyP, "5513933333333", T0, true);
     await rodarCiclo(db, min(5), deps);

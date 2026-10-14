@@ -1,4 +1,4 @@
-// Verificador da loja: a cada 5 min expira reservas, confere pagamentos no Asaas e manda as mensagens.
+// Verificador da loja: a cada 5 min confere pagamentos no Asaas, expira reservas e manda as mensagens.
 // Também é disparado pelo webhook do Asaas. Duas rodadas nunca correm juntas no processo (trava em
 // globalThis); quem chega com uma rodando pede uma rodada a mais no fim, em vez de correr em paralelo.
 
@@ -50,7 +50,7 @@ function pagouOutroDepois(db: DatabaseSync, p: Pedido): boolean {
   const r = db
     .prepare(
       `SELECT 1 FROM pedidos
-        WHERE whatsapp = ? AND id <> ? AND status IN ('pago', 'entregue') AND criado_em > ?
+        WHERE whatsapp = ? AND id <> ? AND status IN ('pago', 'entregue', 'pago_sem_peca') AND criado_em > ?
         LIMIT 1`,
     )
     .get(p.whatsapp, p.id, p.criadoEm);
@@ -116,8 +116,23 @@ async function enviarMensagem(
   }
 }
 
+async function conferirPagamento(db: DatabaseSync, p: Pedido, agora: Date, deps: DepsCiclo): Promise<void> {
+  const r = await deps.consultarPagamento(p);
+  if (r.pago) marcarPago(db, p.codigo, r.liquido, agora);
+}
+
 async function umaRodada(db: DatabaseSync, agora: Date, deps: DepsCiclo): Promise<void> {
-  // 1) Reservas vencidas: expira (devolve estoque) e cancela a cobrança no Asaas.
+  // 1) Pagamentos ANTES de expirar: Pix pago aos 58 min com webhook atrasado não pode virar expirado.
+  for (const p of abertosComCobranca(db)) {
+    try {
+      await conferirPagamento(db, p, agora, deps);
+    } catch (e) {
+      console.error(`loja: consultar pagamento do pedido ${p.id} falhou: ${msgErro(e)}`);
+    }
+  }
+
+  // 2) Reservas vencidas: expira (devolve estoque) e cancela a cobrança no Asaas. Se o cancelamento
+  // falhar (pode ter sido pago no meio do caminho), confere de novo; pagou → marcarPago.
   let expirados: Pedido[] = [];
   try {
     expirados = expirarVencidos(db, agora);
@@ -129,16 +144,11 @@ async function umaRodada(db: DatabaseSync, agora: Date, deps: DepsCiclo): Promis
       await deps.cancelarCobranca(p);
     } catch (e) {
       console.error(`loja: cancelar cobrança do pedido ${p.id} falhou: ${msgErro(e)}`);
-    }
-  }
-
-  // 2) Pagamentos: confere cada pedido aguardando que tem cobrança.
-  for (const p of abertosComCobranca(db)) {
-    try {
-      const r = await deps.consultarPagamento(p);
-      if (r.pago) marcarPago(db, p.codigo, r.liquido, agora);
-    } catch (e) {
-      console.error(`loja: consultar pagamento do pedido ${p.id} falhou: ${msgErro(e)}`);
+      try {
+        await conferirPagamento(db, p, agora, deps);
+      } catch (e2) {
+        console.error(`loja: consultar pagamento do pedido ${p.id} falhou: ${msgErro(e2)}`);
+      }
     }
   }
 
@@ -173,7 +183,12 @@ async function umaRodada(db: DatabaseSync, agora: Date, deps: DepsCiclo): Promis
  * Uma rodada completa do verificador. Se já houver uma rodando no processo, não corre junto:
  * marca para a rodada atual repetir no fim (pega o pagamento que o webhook acabou de avisar).
  */
-export async function rodarCiclo(db: DatabaseSync, agora: Date, deps: DepsCiclo = depsPadrao): Promise<void> {
+export async function rodarCiclo(
+  db: DatabaseSync,
+  agora: Date | (() => Date),
+  deps: DepsCiclo = depsPadrao,
+): Promise<void> {
+  const relogio = typeof agora === "function" ? agora : () => agora;
   if (estado.__lojaCicloRodando) {
     estado.__lojaCicloDeNovo = true;
     return;
@@ -182,7 +197,7 @@ export async function rodarCiclo(db: DatabaseSync, agora: Date, deps: DepsCiclo 
   try {
     do {
       estado.__lojaCicloDeNovo = false;
-      await umaRodada(db, agora, deps);
+      await umaRodada(db, relogio(), deps); // relógio novo a cada volta
     } while (estado.__lojaCicloDeNovo);
   } finally {
     estado.__lojaCicloRodando = false;
@@ -192,7 +207,7 @@ export async function rodarCiclo(db: DatabaseSync, agora: Date, deps: DepsCiclo 
 
 /** Dispara uma rodada sem esperar (webhook). Erro só vai para o log. */
 export function dispararCiclo(): void {
-  rodarCiclo(getDb(), new Date()).catch((e) => console.error("loja: ciclo falhou", e));
+  rodarCiclo(getDb(), () => new Date()).catch((e) => console.error("loja: ciclo falhou", e));
 }
 
 /** Liga o verificador: uma rodada 30 s depois de subir e depois a cada 5 min. Só no servidor. */

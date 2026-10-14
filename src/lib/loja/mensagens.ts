@@ -102,7 +102,7 @@ export function dentroDaJanela(agora: Date): boolean {
 
 /**
  * Regra pura: quais mensagens o pedido deve receber agora, na ordem de envio.
- * Nunca repete tipo já enviado; desiste de tipo com 3 tentativas; fora da janela só os avisos ao dono.
+ * Nunca repete tipo já enviado; desiste de tipo com 3 tentativas; fora da janela 8h–21h, sem lembretes.
  */
 export function mensagensDevidas(
   pedido: Pedido,
@@ -120,18 +120,26 @@ export function mensagensDevidas(
   };
 
   const criado = new Date(pedido.criadoEm).getTime();
-  const emAberto = pedido.status === "aguardando" || pedido.status === "expirado";
+  const comCobranca = Boolean(pedido.asaasId);
   const pago = pedido.status === "pago" || pedido.status === "entregue";
-  const lembreteOk = pedido.aceitaMsgs && emAberto && contexto.temEstoque && !contexto.pagouOutroDepois;
+  const lembreteOk =
+    pedido.aceitaMsgs &&
+    pedido.status === "expirado" &&
+    comCobranca &&
+    contexto.temEstoque &&
+    !contexto.pagouOutroDepois;
 
   const devidas: TipoMensagem[] = [];
-  // "Recebido" só enquanto está em aberto: quem já pagou recebe direto o "pago".
-  if (emAberto) devidas.push("recebido");
+  // "Recebido" só com a cobrança pronta e o pedido ainda aguardando: quem já pagou recebe direto o "pago".
+  if (pedido.status === "aguardando" && comCobranca) devidas.push("recebido");
   if (lembreteOk && agora.getTime() >= criado + HORA_MS) devidas.push("lembrete1h");
   if (lembreteOk && agora.getTime() >= criado + 24 * HORA_MS && enviado("lembrete1h")) devidas.push("lembrete24h");
   if (pago) devidas.push("pago", "aviso_venda");
   if (pedido.status === "pago_sem_peca") devidas.push("aviso_sem_peca");
 
+  // A janela 8h–21h vale só para os lembretes. Recebido e pago respondem ao que o cliente acabou de
+  // fazer; avisos ao dono saem a qualquer hora.
   const janela = dentroDaJanela(agora);
-  return devidas.filter((t) => podeTentar(t) && (janela || ehAvisoAoDono(t)));
+  const ehLembrete = (t: TipoMensagem) => t === "lembrete1h" || t === "lembrete24h";
+  return devidas.filter((t) => podeTentar(t) && (janela || !ehLembrete(t)));
 }
