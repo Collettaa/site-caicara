@@ -58,3 +58,89 @@ body {
     max-width: 1280px;
   }
 }
+
+/* Loja: etiqueta de roupa pendurada no cordão. */
+.loja-areia {
+  background: #f2ebdd;
+}
+
+/* O cordão fica fora do recorte; o conjunto gira em volta do ponto onde o cordão prende. */
+.etiqueta-wrap {
+  position: relative;
+  display: inline-block;
+  transform-origin: 50% -2.5rem;
+  transform: rotate(-4deg);
+  filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.18));
+}
+
+.etiqueta-cordao {
+  position: absolute;
+  bottom: calc(100% - 0.85rem);
+  left: 50%;
+  width: 2px;
+  height: 3.3rem;
+  margin-left: -1px;
+  background: #000;
+}
+
+.etiqueta {
+  position: relative;
+  display: grid;
+  gap: 0.15rem;
+  min-width: 10rem;
+  padding: 1.6rem 1rem 0.9rem;
+  background: #f8d808;
+  color: #000;
+  clip-path: polygon(18% 0, 82% 0, 100% 14%, 100% 100%, 0 100%, 0 14%);
+}
+
+/* ilhós */
+.etiqueta::before {
+  content: "";
+  position: absolute;
+  top: 0.55rem;
+  left: 50%;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-left: -0.3rem;
+  border-radius: 9999px;
+  background: #f2ebdd;
+  box-shadow: 0 0 0 2px #000;
+}
+
+.etiqueta-preco {
+  font-family: var(--font-oswald), sans-serif;
+  font-weight: 700;
+  font-size: 2.25rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.etiqueta-nota {
+  font-family: var(--font-marker), cursive;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.etiqueta-pequena .etiqueta {
+  min-width: 7rem;
+  padding: 1.4rem 0.8rem 0.7rem;
+}
+
+.etiqueta-pequena .etiqueta-preco {
+  font-size: 1.85rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .etiqueta-balanca {
+    animation: etiqueta-balanca 1.6s ease-out 0.3s 1 both;
+  }
+}
+
+@keyframes etiqueta-balanca {
+  0% { transform: rotate(9deg); }
+  35% { transform: rotate(-8deg); }
+  60% { transform: rotate(2deg); }
+  80% { transform: rotate(-5deg); }
+  100% { transform: rotate(-4deg); }
+}

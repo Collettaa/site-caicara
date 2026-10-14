@@ -282,6 +282,15 @@ function Pago({ status }: { status: "pago" | "entregue" | "pago_sem_peca" }) {
       {status === "pago" ? (
         <p className="mt-3 text-lg text-zinc-700">Tá tudo certo. É só retirar no box e mostrar este pedido no balcão.</p>
       ) : null}
+      {status === "pago" || status === "entregue" ? (
+        <p className="mt-3 text-zinc-700">
+          Treinou com ela? Posta e marca o{" "}
+          <a className="font-semibold underline underline-offset-4" href="https://instagram.com/caicarafit013" target="_blank" rel="noopener noreferrer">
+            @caicarafit013
+          </a>
+          .
+        </p>
+      ) : null}
       {status === "entregue" ? <p className="mt-3 text-lg text-zinc-700">Pedido já entregue. Bom treino!</p> : null}
       {status === "pago_sem_peca" ? (
         <p className="mt-3 text-lg text-zinc-700">

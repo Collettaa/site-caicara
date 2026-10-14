@@ -5,12 +5,11 @@ const endereco = `${siteConfig.address.streetAddress}, ${siteConfig.address.loca
 
 export function Retirada() {
   return (
-    <div className="rounded-2xl bg-zinc-950 p-5 text-zinc-300">
-      <p className="inline-flex items-start gap-2">
-        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-caicara-yellow" />
-        <span>
-          <strong className="text-white">Retirada no box:</strong> {endereco}.
-        </span>
+    <div className="border-l-4 border-[#f8d808] bg-black p-5 text-zinc-300">
+      <p className="font-heading text-xl font-bold uppercase tracking-tight text-white">Sem frete: pega no próximo treino.</p>
+      <p className="mt-2 inline-flex items-start gap-2">
+        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#f8d808]" />
+        <span>{endereco}</span>
       </p>
       <p className="mt-2 text-sm text-zinc-400">Troca de tamanho em até 7 dias, conforme estoque.</p>
     </div>

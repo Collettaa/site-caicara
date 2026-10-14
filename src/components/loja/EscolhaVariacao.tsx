@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { CheckCircle2, ShoppingBag } from "lucide-react";
+import { Etiqueta } from "./Etiqueta";
+import { reais } from "./reais";
 import { MAX_POR_VARIACAO, useCarrinho } from "./useCarrinho";
+
+// Estoque baixo aparece de verdade na etiqueta; acima disso não chama atenção.
+const ESTOQUE_BAIXO = 3;
 
 export interface OpcaoVariacao {
   id: number;
@@ -25,8 +30,8 @@ interface Props {
 }
 
 const opcaoClass = (ativo: boolean) =>
-  `rounded-2xl border px-4 py-3 text-sm font-bold uppercase tracking-[0.1em] transition-colors ${
-    ativo ? "border-black bg-black text-white" : "border-zinc-300 bg-white text-zinc-800 hover:border-black"
+  `border-2 px-5 py-3 text-base font-bold transition-colors focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-black ${
+    ativo ? "border-black bg-black text-white" : "border-black/25 bg-white text-zinc-900 hover:border-black"
   }`;
 
 export function EscolhaVariacao({ produto, variacoes }: Props) {
@@ -71,11 +76,29 @@ export function EscolhaVariacao({ produto, variacoes }: Props) {
     return <p className="rounded-2xl bg-zinc-100 p-4 font-semibold text-zinc-700">Esgotado por enquanto. Volta logo.</p>;
   }
 
+  const nota = !escolhida
+    ? "feita no box"
+    : escolhida.estoque <= ESTOQUE_BAIXO
+      ? `restam ${escolhida.estoque} no ${escolhida.tamanho}`
+      : `${escolhida.modelo} ${escolhida.tamanho}`;
+  const economia = produto.precoPix !== null && produto.precoPix < produto.preco ? produto.preco - produto.precoPix : 0;
+
   return (
     <div className="grid gap-6">
+      <div className="flex items-start gap-5 pt-10">
+        <Etiqueta preco={produto.preco} precoPix={produto.precoPix} nota={nota} balanca />
+        <div className="grid gap-1 pt-2 text-sm text-zinc-700">
+          {economia > 0 ? <p className="font-semibold text-black">Economiza {reais(economia)} no Pix.</p> : null}
+          {produto.parcelasMax > 1 ? (
+            <p>
+              No cartão em até {produto.parcelasMax}x de {reais(Math.ceil(produto.preco / produto.parcelasMax))}.
+            </p>
+          ) : null}
+        </div>
+      </div>
       {modelos.length > 1 ? (
         <fieldset className="grid gap-2">
-          <legend className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500">Modelo</legend>
+          <legend className="mb-2 text-sm font-semibold text-zinc-600">Modelo</legend>
           <div className="flex flex-wrap gap-3">
             {modelos.map((m) => (
               <button key={m} type="button" className={opcaoClass(m === modelo)} onClick={() => escolherModelo(m)}>
@@ -87,7 +110,7 @@ export function EscolhaVariacao({ produto, variacoes }: Props) {
       ) : null}
 
       <fieldset className="grid gap-2">
-        <legend className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500">Tamanho</legend>
+        <legend className="mb-2 text-sm font-semibold text-zinc-600">Tamanho</legend>
         <div className="flex flex-wrap gap-3">
           {tamanhos.map((v) => {
             const esgotado = v.estoque <= 0;
@@ -99,7 +122,7 @@ export function EscolhaVariacao({ produto, variacoes }: Props) {
                 aria-label={esgotado ? `${v.tamanho}, esgotado` : v.tamanho}
                 className={
                   esgotado
-                    ? "min-w-16 cursor-not-allowed rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-bold uppercase text-zinc-400"
+                    ? "min-w-16 cursor-not-allowed border-2 border-dashed border-black/15 px-4 py-2 text-base font-bold text-zinc-400"
                     : `min-w-16 ${opcaoClass(v.id === variacaoId)}`
                 }
                 onClick={() => escolherTamanho(v.id)}
@@ -117,10 +140,10 @@ export function EscolhaVariacao({ produto, variacoes }: Props) {
           type="button"
           disabled={!escolhida || cheio}
           onClick={adicionarAoCarrinho}
-          className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-caicara-yellow px-8 text-sm font-bold uppercase tracking-[0.14em] text-black transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50"
+          className="inline-flex h-14 items-center justify-center gap-3 bg-black px-8 text-base font-bold text-white transition-colors hover:bg-zinc-800 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[#f8d808] disabled:bg-black/40"
         >
           <ShoppingBag className="h-5 w-5" />
-          {escolhida ? "Adicionar ao carrinho" : "Escolhe o tamanho"}
+          {escolhida ? "Pôr no carrinho" : "Escolhe o tamanho"}
         </button>
         {cheio && !adicionado ? (
           <p className="text-sm font-semibold text-zinc-600">
@@ -128,14 +151,14 @@ export function EscolhaVariacao({ produto, variacoes }: Props) {
           </p>
         ) : null}
         {adicionado ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div className="flex flex-col items-center gap-3 border-2 border-black bg-[#f8d808] p-4 text-center sm:flex-row sm:justify-between sm:text-left">
             <p className="inline-flex items-center gap-2 font-semibold text-zinc-800">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-5 w-5" />
               Foi pro carrinho!
             </p>
             <Link
               href="/loja/carrinho"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-black px-6 text-xs font-bold uppercase tracking-[0.14em] text-white"
+              className="inline-flex h-11 items-center justify-center bg-black px-6 text-sm font-bold text-white"
             >
               Ver carrinho
             </Link>
