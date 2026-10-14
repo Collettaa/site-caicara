@@ -287,15 +287,60 @@ describe("cancelarCobranca", () => {
     expect(chamadas).toHaveLength(1);
   });
 
-  it("404 não lança", async () => {
-    respostas.push((url, init) =>
-      url === `${LOJA_URL}/payments/pay_3` && init.method === "DELETE" ? json({ errors: [] }, 404) : undefined,
-    );
+  const del = (caminho: string, resp: Response) => (url: string, init: RequestInit) =>
+    url === `${LOJA_URL}${caminho}` && init.method === "DELETE" ? resp : undefined;
+  const get = (caminho: string, resp: Response) => (url: string, init: RequestInit) =>
+    url === `${LOJA_URL}${caminho}` && (init.method ?? "GET") === "GET" ? resp : undefined;
+
+  it("404 no DELETE e 404 na consulta: já não existe, não lança", async () => {
+    respostas.push(del("/payments/pay_3", json({ errors: [] }, 404)), get("/payments/pay_3", json({ errors: [] }, 404)));
     await expect(cancelarCobranca(pedido({ asaasId: "pay_3" }))).resolves.toBeUndefined();
   });
 
-  it("outro erro lança", async () => {
+  it("já cancelada pelo verificador: DELETE dá 400, consulta diz deleted → não lança", async () => {
+    respostas.push(
+      del("/payments/pay_4", json({ errors: [{ code: "invalid_action", description: "já removida" }] }, 400)),
+      get("/payments/pay_4", json({ id: "pay_4", deleted: true, status: "PENDING" })),
+    );
+    await expect(cancelarCobranca(pedido({ asaasId: "pay_4" }))).resolves.toBeUndefined();
+    expect(chamadas.map((c) => c.init.method ?? "GET")).toEqual(["DELETE", "GET"]);
+  });
+
+  it("DELETE 404 e consulta diz deleted → não lança", async () => {
+    respostas.push(
+      del("/payments/pay_5", json({ errors: [] }, 404)),
+      get("/payments/pay_5", json({ id: "pay_5", deleted: true })),
+    );
+    await expect(cancelarCobranca(pedido({ asaasId: "pay_5" }))).resolves.toBeUndefined();
+  });
+
+  it("parcelamento já cancelado: consulta o parcelamento", async () => {
+    respostas.push(
+      del("/installments/ins_2", json({ errors: [] }, 400)),
+      get("/installments/ins_2", json({ id: "ins_2", deleted: true })),
+    );
+    await expect(
+      cancelarCobranca(pedido({ asaasId: "pay_1", asaasParcelamentoId: "ins_2" })),
+    ).resolves.toBeUndefined();
+    expect(chamadas.map((c) => c.url)).toEqual([`${LOJA_URL}/installments/ins_2`, `${LOJA_URL}/installments/ins_2`]);
+  });
+
+  it("400 e a cobrança segue viva (ex.: paga) → lança o erro do DELETE", async () => {
+    respostas.push(
+      del("/payments/pay_6", json({ errors: [] }, 400)),
+      get("/payments/pay_6", json({ id: "pay_6", deleted: false, status: "RECEIVED" })),
+    );
+    await expect(cancelarCobranca(pedido({ asaasId: "pay_6" }))).rejects.toThrow(/400/);
+  });
+
+  it("400 e a consulta também falha → lança o erro do DELETE", async () => {
+    respostas.push(del("/payments/pay_7", json({ errors: [] }, 400)), get("/payments/pay_7", json({}, 500)));
+    await expect(cancelarCobranca(pedido({ asaasId: "pay_7" }))).rejects.toThrow(/400/);
+  });
+
+  it("outro erro lança sem consultar", async () => {
     respostas.push(() => json({ errors: [] }, 500));
     await expect(cancelarCobranca(pedido({ asaasId: "pay_3" }))).rejects.toThrow(/500/);
+    expect(chamadas).toHaveLength(1);
   });
 });

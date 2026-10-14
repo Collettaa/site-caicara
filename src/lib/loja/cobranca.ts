@@ -150,10 +150,23 @@ export async function cancelarCobranca(p: Pedido): Promise<void> {
       : null;
   if (!caminho) return;
 
+  const cfg = cfgObrigatoria();
   try {
-    await asaasFetch(cfgObrigatoria(), caminho, { method: "DELETE" });
+    await asaasFetch(cfg, caminho, { method: "DELETE" });
   } catch (erro) {
-    if (erro instanceof ErroAsaas && erro.status === 404) return;
+    // 400/404 no DELETE pode ser cobrança já removida (ex.: o verificador cancelou na expiração).
+    // Confere no Asaas: `deleted: true` ou 404 na consulta contam como cancelada.
+    if (!(erro instanceof ErroAsaas && (erro.status === 400 || erro.status === 404))) throw erro;
+    if (await jaRemovida(cfg, caminho)) return;
     throw erro;
+  }
+}
+
+async function jaRemovida(cfg: AsaasCfg, caminho: string): Promise<boolean> {
+  try {
+    const atual = await asaasFetch<{ deleted?: boolean }>(cfg, caminho);
+    return atual.deleted === true;
+  } catch (erro) {
+    return erro instanceof ErroAsaas && erro.status === 404;
   }
 }
