@@ -7,12 +7,12 @@ import { type PedidoComItens, listarPorStatus } from "@/lib/loja/pedidos";
 import { listarTodos } from "@/lib/loja/produtos";
 import type { Forma } from "@/lib/loja/tipos";
 import { cancelarAction, entregarAction } from "./actions";
+import { type Aba, ERRO, MSG, abaValida, textoDe } from "./avisos";
 import { BotaoAcao } from "./BotaoAcao";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Pedidos" };
 
-type Aba = "entregar" | "aguardando" | "entregues";
 const ABAS: { id: Aba; label: string }[] = [
   { id: "entregar", label: "Para entregar" },
   { id: "aguardando", label: "Aguardando" },
@@ -47,10 +47,13 @@ const quando = (iso: string | null) => (iso ? formatoData.format(new Date(iso)).
 export default async function PedidosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ aba?: string; ok?: string; erro?: string; ajuste?: string }>;
+  searchParams: Promise<{ aba?: string; msg?: string; erro?: string; ajuste?: string }>;
 }) {
   const sp = await searchParams;
-  const aba: Aba = ABAS.some((a) => a.id === sp.aba) ? (sp.aba as Aba) : "entregar";
+  const aba = abaValida(sp.aba);
+  // Só códigos conhecidos viram texto; nada da URL é exibido literal.
+  const ok = textoDe(MSG, sp.msg);
+  const erro = textoDe(ERRO, sp.erro);
   const db = getDb();
   const agora = new Date().getTime(); // página dinâmica: lida a cada visita
 
@@ -91,13 +94,13 @@ export default async function PedidosPage({
           </div>
         </div>
       ) : null}
-      {sp.ok ? (
+      {ok ? (
         <p className="mt-4 flex items-center gap-2 rounded-2xl bg-green-100 p-4 font-semibold text-green-900">
           <CheckCircle2 className="h-5 w-5" />
-          {sp.ok}
+          {ok}
         </p>
       ) : null}
-      {sp.erro ? <p className="mt-4 rounded-2xl bg-red-100 p-4 font-semibold text-red-800">{sp.erro}</p> : null}
+      {erro ? <p className="mt-4 rounded-2xl bg-red-100 p-4 font-semibold text-red-800">{erro}</p> : null}
 
       <div className="mt-5 grid grid-cols-3 gap-2">
         {ABAS.map((a) => (

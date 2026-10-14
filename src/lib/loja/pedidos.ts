@@ -420,11 +420,15 @@ export function marcarEntregue(db: DatabaseSync, id: number, agora: Date): { ped
   });
 }
 
-/** Cancela o pedido. Devolve o estoque só se ele segurava peça (`aguardando` ou `pago`). */
+/**
+ * Cancela o pedido. Devolve o estoque só se ele segurava peça (`aguardando` ou `pago`).
+ * Entregue não cancela (a peça já saiu): ErroLoja "status".
+ */
 export function cancelar(db: DatabaseSync, id: number): Pedido {
   return transacao(db, () => {
     const p = pedidoPorId(db, id);
     if (p.status === "cancelado") return p;
+    if (p.status === "entregue") throw new ErroLoja("status", "Pedido entregue não cancela.");
     if (p.status === "aguardando" || p.status === "pago") devolver(db, p.id);
     db.prepare("UPDATE pedidos SET status = 'cancelado' WHERE id = ?").run(id);
     return pedidoPorId(db, id);

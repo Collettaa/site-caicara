@@ -410,6 +410,14 @@ describe("entrega, cancelamento e balcão", () => {
     expect(estoque(babyM)).toBe(5);
   });
 
+  it("cancelar pedido entregue → ErroLoja status, nada muda", () => {
+    const v = vendaBalcao(db, { itens: [{ variacaoId: babyM, qtd: 1 }], forma: "balcao_dinheiro" }, T0);
+    const antes = estoque(babyM);
+    expect(pegaErro(() => cancelar(db, v.id)).codigo).toBe("status");
+    expect(listarPorStatus(db, ["entregue"]).map((p) => p.id)).toEqual([v.id]);
+    expect(estoque(babyM)).toBe(antes);
+  });
+
   it("cancelar pedido expirado não devolve de novo", () => {
     const p = pedido(babyP);
     expirarVencidos(db, min(60));
