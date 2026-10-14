@@ -132,7 +132,7 @@ Variáveis no serviço (`docker service update --env-add NOME=valor site-caicara
 | Variável | O que é |
 |---|---|
 | `LOJA_ASAAS_API_KEY` | Chave da conta Asaas **da loja**. Nunca a `ASAAS_API_KEY` (é do Aulão Rosa). |
-| `LOJA_ASAAS_URL` | Teste: `https://api-sandbox.asaas.com/v3`. Produção: `https://api.asaas.com/v3`. |
+| `LOJA_ASAAS_URL` | Teste: `https://sandbox.asaas.com/api/v3`. Produção: `https://api.asaas.com/v3`. |
 | `ASAAS_WEBHOOK_TOKEN` | Token do webhook. O mesmo valor vai no painel do Asaas. |
 | `ADMIN_SENHA` | Senha do `/admin`. |
 | `ADMIN_COOKIE_SECRET` | Segredo que assina o cookie do admin. Trocar desloga todo mundo. |

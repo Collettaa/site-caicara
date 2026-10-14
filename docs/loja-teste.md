@@ -3,7 +3,7 @@
 Teste em produção (`https://caicara.store`) com a conta **sandbox** do Asaas na loja. Antes de começar,
 conferir `docs/deploy-vps.md` → "Loja — variáveis e deploy":
 
-- [ ] `LOJA_ASAAS_URL=https://api-sandbox.asaas.com/v3` e `LOJA_ASAAS_API_KEY` da sandbox no serviço.
+- [ ] `LOJA_ASAAS_URL=https://sandbox.asaas.com/api/v3` e `LOJA_ASAAS_API_KEY` da sandbox no serviço.
 - [ ] `ADMIN_SENHA`, `ADMIN_COOKIE_SECRET`, `ASAAS_WEBHOOK_TOKEN`, `SITE_URL=https://caicara.store` no serviço.
 - [ ] Build **sem** `LOJA_NO_MENU` (a loja abre em `/loja`, mas não aparece no menu).
 - [ ] Webhook criado no painel da sandbox: `https://caicara.store/api/loja/asaas`, eventos
@@ -23,7 +23,7 @@ Pix e cartão na sandbox não cobram nada. Para marcar como pago:
 - **API:** com a chave da sandbox:
 
 ```bash
-curl -X POST "https://api-sandbox.asaas.com/v3/payments/<id da cobrança>/receiveInCash" \
+curl -X POST "https://sandbox.asaas.com/api/v3/payments/<id da cobrança>/receiveInCash" \
   -H "access_token: <LOJA_ASAAS_API_KEY da sandbox>" \
   -H "Content-Type: application/json" \
   -d '{"paymentDate":"AAAA-MM-DD","value":<valor em reais>,"notifyCustomer":false}'
