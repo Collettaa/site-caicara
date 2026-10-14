@@ -32,7 +32,9 @@ function descricao(pedido: Pedido & { itens?: ItemPedido[] }): string {
 
 // Tira o CPF (com ou sem máscara) de mensagens de erro que o Asaas possa ecoar.
 function semCpf(erro: unknown, cpf: string, cpfDigitos: string): Error {
-  const limpar = (s: string) => s.split(cpf).join("***").split(cpfDigitos).join("***");
+  const formatado = cpfDigitos.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+  const variantes = [...new Set([cpf, formatado, cpfDigitos].filter(Boolean))];
+  const limpar = (s: string) => variantes.reduce((acc, v) => acc.split(v).join("***"), s);
   const msg = erro instanceof Error ? erro.message : String(erro);
   const limpo = erro instanceof ErroAsaas ? new ErroAsaas(limpar(msg), erro.status) : new Error(limpar(msg));
   limpo.stack = `${limpo.name}: ${limpo.message}`;
@@ -82,10 +84,21 @@ export async function criarCobranca(
     corpo = { ...base, billingType: "CREDIT_CARD", installmentCount: 2, totalValue: reais(pedido.total) };
   else throw new Error(`loja: forma ${pedido.forma} não gera cobrança no Asaas`);
 
-  const payment = await asaasFetch<{ id: string; invoiceUrl: string; installment?: string | null }>(cfg, "/payments", {
-    method: "POST",
-    body: JSON.stringify(corpo),
-  });
+  type RespostaPagamento = { id: string; invoiceUrl: string; installment?: string | null };
+  const postar = (c: Record<string, unknown>) =>
+    asaasFetch<RespostaPagamento>(cfg, "/payments", { method: "POST", body: JSON.stringify(c) });
+
+  let payment: RespostaPagamento;
+  try {
+    payment = await postar(corpo);
+  } catch (erro) {
+    // Conta sem domínio cadastrado recusa o callback: cobra sem retorno automático.
+    if (!(erro instanceof ErroAsaas && erro.status === 400 && /domínio/i.test(erro.message))) throw erro;
+    console.warn("loja: Asaas sem domínio cadastrado; cobrança sem retorno automático");
+    const { callback: _callback, ...semCallback } = corpo;
+    void _callback;
+    payment = await postar(semCallback);
+  }
 
   const cobranca: Cobranca = { asaasId: payment.id, invoiceUrl: payment.invoiceUrl };
   if (pedido.forma === "cartao2" && payment.installment) cobranca.parcelamentoId = payment.installment;

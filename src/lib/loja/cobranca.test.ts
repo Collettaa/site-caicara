@@ -182,6 +182,66 @@ describe("criarCobranca", () => {
   });
 });
 
+describe("criarCobranca — casos de erro do Asaas", () => {
+  it("sem domínio cadastrado tenta de novo uma vez sem callback e avisa", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    respostas.push((url) => (url.endsWith("/customers") ? json({ id: "cus_1" }) : undefined));
+    respostas.push((url, init) => {
+      if (!url.endsWith("/payments")) return undefined;
+      const corpo = JSON.parse(String(init.body));
+      if (corpo.callback)
+        return json(
+          {
+            errors: [
+              {
+                code: "invalid_object",
+                description: "Não há nenhum domínio configurado em sua conta. Cadastre um site em Minha Conta na aba Informações.",
+              },
+            ],
+          },
+          400,
+        );
+      return json({ id: "pay_9", invoiceUrl: "https://asaas.test/i/9" });
+    });
+
+    const r = await criarCobranca(pedido({ forma: "cartao1", total: 7000 }), cliente);
+
+    expect(r).toEqual({ asaasId: "pay_9", invoiceUrl: "https://asaas.test/i/9" });
+    const pagamentos = chamadas.filter((c) => c.url.endsWith("/payments"));
+    expect(pagamentos).toHaveLength(2);
+    expect(corpoDe(pagamentos[0]).callback).toBeDefined();
+    expect(corpoDe(pagamentos[1]).callback).toBeUndefined();
+    expect(corpoDe(pagamentos[1])).toMatchObject({ billingType: "CREDIT_CARD", value: 70, externalReference: "loja:abcDEF123_-xyz00" });
+    expect(warn).toHaveBeenCalledWith("loja: Asaas sem domínio cadastrado; cobrança sem retorno automático");
+  });
+
+  it("outro 400 no /payments lança sem tentar de novo", async () => {
+    respostas.push((url) => (url.endsWith("/customers") ? json({ id: "cus_1" }) : undefined));
+    respostas.push((url) =>
+      url.endsWith("/payments") ? json({ errors: [{ code: "invalid_value", description: "Valor inválido" }] }, 400) : undefined,
+    );
+
+    await expect(criarCobranca(pedido(), cliente)).rejects.toThrow(/400/);
+    expect(chamadas.filter((c) => c.url.endsWith("/payments"))).toHaveLength(1);
+  });
+
+  it("CPF vindo só em dígitos sai mascarado mesmo se o Asaas devolver com pontos e traço", async () => {
+    respostas.push((url) =>
+      url.endsWith("/customers")
+        ? json({ errors: [{ code: "invalid_cpfCnpj", description: "O CPF 529.982.247-25 é inválido" }] }, 400)
+        : undefined,
+    );
+
+    const erro = await criarCobranca(pedido(), { ...cliente, cpf: CPF }).catch((e: Error) => e);
+
+    expect(erro).toBeInstanceOf(Error);
+    const msg = `${(erro as Error).message} ${(erro as Error).stack}`;
+    expect(msg).not.toContain("529.982.247-25");
+    expect(msg).not.toContain(CPF);
+    expect(msg).toContain("***");
+  });
+});
+
 describe("consultarPagamento", () => {
   it("parcelado soma netValue das parcelas", async () => {
     respostas.push((url) =>
