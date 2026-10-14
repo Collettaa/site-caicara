@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
     LOJA_NO_MENU: process.env.LOJA_NO_MENU ?? "",
   },
   outputFileTracingRoot: rootDir,
+  experimental: {
+    // Fotos de produto no admin (até 8 MB cada, uma por envio).
+    serverActions: { bodySizeLimit: "10mb" },
+  },
   async redirects() {
     return [
       {
