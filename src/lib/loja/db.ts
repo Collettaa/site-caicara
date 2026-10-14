@@ -101,7 +101,10 @@ export function transacao<T>(db: DatabaseSync, fn: () => T): T {
     db.exec("COMMIT");
     return resultado;
   } catch (erro) {
-    db.exec("ROLLBACK");
+    // O SQLite pode já ter desfeito sozinho (disco cheio, I/O); o erro que importa é o original.
+    try {
+      db.exec("ROLLBACK");
+    } catch {}
     throw erro;
   }
 }
