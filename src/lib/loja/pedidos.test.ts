@@ -13,6 +13,7 @@ import {
   reativar,
   salvarCobranca,
   vendaBalcao,
+  voltarParaExpirado,
 } from "@/lib/loja/pedidos";
 import { atualizarProduto, buscarPorId, criarProduto } from "@/lib/loja/produtos";
 
@@ -269,6 +270,27 @@ describe("marcarPago", () => {
 
   it("código desconhecido → nao_encontrado", () => {
     expect(pegaErro(() => marcarPago(db, "xxx", null, T0)).codigo).toBe("nao_encontrado");
+  });
+});
+
+describe("voltarParaExpirado", () => {
+  it("desfaz a reativação sem cobrança: expirado de novo e estoque devolvido", () => {
+    const p = pedido(babyP);
+    expirarVencidos(db, min(60));
+    reativar(db, p.codigo, min(90));
+    expect(estoque(babyP)).toBe(0);
+    expect(voltarParaExpirado(db, p.id).status).toBe("expirado");
+    expect(estoque(babyP)).toBe(1);
+  });
+
+  it("não mexe em pedido com cobrança ou fora de aguardando", () => {
+    const p = pedido(babyM);
+    salvarCobranca(db, p.id, { asaasId: "pay_1", invoiceUrl: "https://x" });
+    expect(voltarParaExpirado(db, p.id).status).toBe("aguardando");
+    expect(estoque(babyM)).toBe(4);
+    marcarPago(db, p.codigo, null, min(5));
+    expect(voltarParaExpirado(db, p.id).status).toBe("pago");
+    expect(estoque(babyM)).toBe(4);
   });
 });
 

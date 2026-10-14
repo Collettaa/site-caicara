@@ -347,6 +347,20 @@ export function reativar(db: DatabaseSync, codigo: string, agora: Date): Pedido 
 }
 
 /**
+ * Desfaz uma reativação cuja cobrança não saiu: `aguardando` sem cobrança volta para `expirado` e
+ * devolve o estoque. Qualquer outro caso (já tem cobrança, já pagou) não muda nada.
+ */
+export function voltarParaExpirado(db: DatabaseSync, id: number): Pedido {
+  return transacao(db, () => {
+    const p = pedidoPorId(db, id);
+    if (p.status !== "aguardando" || p.asaasId !== null) return p;
+    devolver(db, p.id);
+    db.prepare("UPDATE pedidos SET status = 'expirado' WHERE id = ?").run(id);
+    return pedidoPorId(db, id);
+  });
+}
+
+/**
  * Pagamento confirmado. Idempotente: já pago/entregue/pago_sem_peca → `mudou: false`.
  * Cancelado depois de pago (`pagoEm` preenchido) → `mudou: false`, nada muda (o dono já decidiu).
  * Expirado ou cancelado antes de pagar: reserva de novo se houver estoque (`pago`); senão `pago_sem_peca`,
