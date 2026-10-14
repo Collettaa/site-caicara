@@ -68,6 +68,7 @@ export default async function ProdutoPage({ params }: Props) {
                 precoPix: produto.precoPix,
                 parcelasMax: produto.parcelasMax,
                 foto: produto.fotos[0] ?? "",
+                etiqueta: produto.etiqueta,
               }}
               variacoes={produto.variacoes.map((v) => ({
                 id: v.id,

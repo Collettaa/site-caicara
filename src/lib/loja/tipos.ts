@@ -20,6 +20,8 @@ export interface Produto {
   ativo: boolean;
   fotos: string[];
   criadoEm: string;
+  /** Anotação à mão na etiqueta de preço. Vazio = "feita no box". */
+  etiqueta: string;
 }
 
 export interface Variacao {

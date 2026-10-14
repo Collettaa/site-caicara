@@ -32,7 +32,17 @@ describe("lerDadosProduto", () => {
   it("camiseta do spec", () => {
     expect(lerDadosProduto(form(base))).toEqual({
       ok: true,
-      dados: { nome: "Camiseta", descricao: "", preco: 7000, precoPix: 6500, parcelasMax: 2 },
+      dados: { nome: "Camiseta", descricao: "", preco: 7000, precoPix: 6500, parcelasMax: 2, etiqueta: "" },
+    });
+  });
+
+  it("etiqueta: lida sem espaços nas pontas; até 30 letras", () => {
+    const r = lerDadosProduto(form({ ...base, etiqueta: "  edição Outubro Rosa " }));
+    expect(r.ok && r.dados.etiqueta).toBe("edição Outubro Rosa");
+    expect(lerDadosProduto(form({ ...base, etiqueta: "a".repeat(30) })).ok).toBe(true);
+    expect(lerDadosProduto(form({ ...base, etiqueta: "a".repeat(31) }))).toEqual({
+      ok: false,
+      erro: "Anotação da etiqueta comprida demais (máximo 30 letras).",
     });
   });
 

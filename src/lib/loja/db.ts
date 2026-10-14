@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS produtos (
   parcelas_max INTEGER NOT NULL DEFAULT 1,
   ativo INTEGER NOT NULL DEFAULT 1,
   fotos TEXT NOT NULL DEFAULT '[]',
-  criado_em TEXT NOT NULL
+  criado_em TEXT NOT NULL,
+  etiqueta TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS variacoes (
@@ -78,7 +79,14 @@ export function openDb(file: string): DatabaseSync {
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec("PRAGMA busy_timeout = 5000;");
   db.exec(ESQUEMA);
+  migrar(db);
   return db;
+}
+
+/** Colunas que vieram depois do banco de produção existir. Só acrescenta o que falta. */
+function migrar(db: DatabaseSync): void {
+  const colunas = (db.prepare("PRAGMA table_info(produtos)").all() as { name: string }[]).map((c) => c.name);
+  if (!colunas.includes("etiqueta")) db.exec("ALTER TABLE produtos ADD COLUMN etiqueta TEXT NOT NULL DEFAULT ''");
 }
 
 const global = globalThis as typeof globalThis & { __lojaDb?: DatabaseSync };

@@ -25,6 +25,8 @@ interface Props {
     precoPix: number | null;
     parcelasMax: number;
     foto: string;
+    /** Anotação da etiqueta escolhida no admin; vazia = "feita no box". */
+    etiqueta: string;
   };
   variacoes: OpcaoVariacao[];
 }
@@ -77,7 +79,7 @@ export function EscolhaVariacao({ produto, variacoes }: Props) {
   }
 
   const nota = !escolhida
-    ? "feita no box"
+    ? produto.etiqueta || "feita no box"
     : escolhida.estoque <= ESTOQUE_BAIXO
       ? `restam ${escolhida.estoque} no ${escolhida.tamanho}`
       : `${escolhida.modelo} ${escolhida.tamanho}`;

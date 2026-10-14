@@ -42,7 +42,10 @@ export function lerDadosProduto(fd: FormData): Resultado<Required<Omit<DadosAtua
   if (!Number.isInteger(parcelasMax) || parcelasMax < 1 || parcelasMax > 12)
     return { ok: false, erro: "Parcelas: de 1 a 12." };
 
-  return { ok: true, dados: { nome, descricao, preco, precoPix, parcelasMax } };
+  const etiqueta = texto(fd, "etiqueta");
+  if (etiqueta.length > 30) return { ok: false, erro: "Anotação da etiqueta comprida demais (máximo 30 letras)." };
+
+  return { ok: true, dados: { nome, descricao, preco, precoPix, parcelasMax, etiqueta } };
 }
 
 export function lerVariacao(fd: FormData): Resultado<DadosVariacao> {

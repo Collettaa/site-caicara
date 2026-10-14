@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
 import { openDb, transacao } from "@/lib/loja/db";
 
@@ -47,6 +48,32 @@ describe("openDb", () => {
     a.close();
     const b = openDb(file);
     expect(tabelas(b)).toEqual(TABELAS);
+    b.close();
+  });
+
+  it("banco antigo sem a coluna etiqueta ganha a coluna ao abrir (e reabrir não falha)", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "loja-"));
+    temporarios.push(dir);
+    const file = path.join(dir, "loja.db");
+    const antigo = new DatabaseSync(file);
+    antigo.exec(`CREATE TABLE produtos (
+      id INTEGER PRIMARY KEY, slug TEXT NOT NULL UNIQUE, nome TEXT NOT NULL,
+      descricao TEXT NOT NULL DEFAULT '', preco INTEGER NOT NULL, preco_pix INTEGER,
+      parcelas_max INTEGER NOT NULL DEFAULT 1, ativo INTEGER NOT NULL DEFAULT 1,
+      fotos TEXT NOT NULL DEFAULT '[]', criado_em TEXT NOT NULL)`);
+    antigo
+      .prepare("INSERT INTO produtos (slug, nome, preco, criado_em) VALUES ('velha', 'Velha', 7000, '2026-10-01T00:00:00.000Z')")
+      .run();
+    antigo.close();
+
+    const a = openDb(file);
+    expect(a.prepare("SELECT etiqueta FROM produtos WHERE slug = 'velha'").get()).toEqual({ etiqueta: "" });
+    a.close();
+    const b = openDb(file);
+    const colunas = (b.prepare("PRAGMA table_info(produtos)").all() as { name: string }[]).filter(
+      (c) => c.name === "etiqueta",
+    );
+    expect(colunas).toHaveLength(1);
     b.close();
   });
 

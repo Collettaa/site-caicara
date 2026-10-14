@@ -139,6 +139,15 @@ describe("edição", () => {
     expect(buscarPorId(db, p.id)!.preco).toBe(8000);
   });
 
+  it("etiqueta: vazia por padrão, gravada no criar e no atualizar", () => {
+    expect(criarProduto(db, camiseta).etiqueta).toBe("");
+    const p = criarProduto(db, { ...camiseta, etiqueta: "edição Outubro Rosa" });
+    expect(buscarPorId(db, p.id)!.etiqueta).toBe("edição Outubro Rosa");
+    expect(atualizarProduto(db, p.id, { etiqueta: "" }).etiqueta).toBe("");
+    expect(atualizarProduto(db, p.id, { nome: "Outra" }).etiqueta).toBe("");
+    expect(atualizarProduto(db, p.id, { etiqueta: "última leva" }).etiqueta).toBe("última leva");
+  });
+
   it("atualizarProduto em produto inexistente lança erro", () => {
     expect(() => atualizarProduto(db, 999, { nome: "x" })).toThrow();
   });

@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Produto" };
 
-const NOVO = { nome: "", descricao: "", preco: null, precoPix: null, parcelasMax: 1 };
+const NOVO = { nome: "", descricao: "", preco: null, precoPix: null, parcelasMax: 1, etiqueta: "" };
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (

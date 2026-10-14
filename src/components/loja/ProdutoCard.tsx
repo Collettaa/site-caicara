@@ -30,7 +30,7 @@ export function ProdutoCard({ produto, destaque = false }: { produto: ProdutoCom
               </div>
             </div>
           ) : (
-            <Etiqueta preco={produto.preco} precoPix={produto.precoPix} nota="feita no box" balanca={destaque} pequena />
+            <Etiqueta preco={produto.preco} precoPix={produto.precoPix} nota={produto.etiqueta || "feita no box"} balanca={destaque} pequena />
           )}
         </div>
       </div>

@@ -17,6 +17,8 @@ export interface DadosProduto {
   precoPix: number | null;
   parcelasMax: number;
   fotos: string[];
+  /** Anotação da etiqueta de preço; omitida = vazia. */
+  etiqueta?: string;
   variacoes: DadosVariacao[];
 }
 
@@ -36,6 +38,7 @@ function paraProduto(r: Linha): Produto {
     ativo: Number(r.ativo) === 1,
     fotos: JSON.parse(String(r.fotos)) as string[],
     criadoEm: String(r.criado_em),
+    etiqueta: String(r.etiqueta ?? ""),
   };
 }
 
@@ -88,8 +91,8 @@ export function criarProduto(db: DatabaseSync, dados: DadosProduto): Produto {
     const slug = slugLivre(db, dados.nome);
     const r = db
       .prepare(
-        `INSERT INTO produtos (slug, nome, descricao, preco, preco_pix, parcelas_max, ativo, fotos, criado_em)
-         VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?) RETURNING *`,
+        `INSERT INTO produtos (slug, nome, descricao, preco, preco_pix, parcelas_max, ativo, fotos, criado_em, etiqueta)
+         VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?) RETURNING *`,
       )
       .get(
         slug,
@@ -100,6 +103,7 @@ export function criarProduto(db: DatabaseSync, dados: DadosProduto): Produto {
         dados.parcelasMax,
         JSON.stringify(dados.fotos),
         new Date().toISOString(),
+        (dados.etiqueta ?? "").trim(),
       ) as Linha;
     const produto = paraProduto(r);
     const ins = db.prepare(
@@ -119,6 +123,7 @@ export function atualizarProduto(db: DatabaseSync, id: number, dados: DadosAtual
   if (dados.precoPix !== undefined) colunas.push(["preco_pix", dados.precoPix]);
   if (dados.parcelasMax !== undefined) colunas.push(["parcelas_max", dados.parcelasMax]);
   if (dados.fotos !== undefined) colunas.push(["fotos", JSON.stringify(dados.fotos)]);
+  if (dados.etiqueta !== undefined) colunas.push(["etiqueta", dados.etiqueta.trim()]);
 
   const r = (
     colunas.length

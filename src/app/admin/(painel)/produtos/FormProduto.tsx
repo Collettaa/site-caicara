@@ -15,6 +15,7 @@ export interface ValoresProduto {
   preco: number | null;
   precoPix: number | null;
   parcelasMax: number;
+  etiqueta: string;
 }
 
 export function FormProduto({ id, valores }: { id: number | "novo"; valores: ValoresProduto }) {
@@ -73,6 +74,12 @@ export function FormProduto({ id, valores }: { id: number | "novo"; valores: Val
             </option>
           ))}
         </select>
+      </label>
+
+      <label className="grid gap-2">
+        <span className={rotuloCls}>Anotação da etiqueta</span>
+        <input name="etiqueta" defaultValue={valores.etiqueta} maxLength={30} placeholder="feita no box" className={campoCls} />
+        <span className="text-sm text-zinc-500">Aparece à mão na etiqueta de preço. Vazio = &quot;feita no box&quot;.</span>
       </label>
 
       {estado?.erro ? <p className="text-sm font-semibold text-red-600">{estado.erro}</p> : null}
