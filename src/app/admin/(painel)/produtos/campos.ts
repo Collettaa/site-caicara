@@ -12,6 +12,9 @@ export function centavosDeReais(texto: string): number | null {
   return Math.round(Number(s) * 100);
 }
 
+/** R$ 100.000 em centavos. */
+export const PRECO_MAX = 10_000_000;
+
 type Resultado<T> = { ok: true; dados: T } | { ok: false; erro: string };
 
 const texto = (fd: FormData, campo: string) => String(fd.get(campo) ?? "").trim();
@@ -27,10 +30,13 @@ export function lerDadosProduto(fd: FormData): Resultado<Required<Omit<DadosAtua
   const preco = centavosDeReais(texto(fd, "preco"));
   if (preco === null || !Number.isInteger(preco) || preco < 1)
     return { ok: false, erro: "Preço inválido. Escreve assim: 70 ou 70,00." };
+  if (preco > PRECO_MAX) return { ok: false, erro: "Preço alto demais (máximo R$ 100.000)." };
 
   const precoPix = centavosDeReais(texto(fd, "precoPix"));
   if (precoPix !== null && (!Number.isInteger(precoPix) || precoPix < 1))
     return { ok: false, erro: "Preço no Pix inválido. Escreve assim: 65 ou 65,00 (ou deixa vazio)." };
+  if (precoPix !== null && precoPix > preco)
+    return { ok: false, erro: "O preço no Pix não pode ser maior que o preço normal." };
 
   const parcelasMax = Number(texto(fd, "parcelasMax"));
   if (!Number.isInteger(parcelasMax) || parcelasMax < 1 || parcelasMax > 12)

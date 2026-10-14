@@ -41,6 +41,19 @@ describe("lerDadosProduto", () => {
     expect(r.ok && r.dados.precoPix).toBeNull();
   });
 
+  it("Pix maior que o preço normal → erro; Pix igual passa", () => {
+    expect(lerDadosProduto(form({ ...base, precoPix: "75" }))).toEqual({
+      ok: false,
+      erro: "O preço no Pix não pode ser maior que o preço normal.",
+    });
+    expect(lerDadosProduto(form({ ...base, precoPix: "70" })).ok).toBe(true);
+  });
+
+  it("preço até R$ 100.000", () => {
+    expect(lerDadosProduto(form({ ...base, preco: "100.000", precoPix: "" })).ok).toBe(true);
+    expect(lerDadosProduto(form({ ...base, preco: "100.000,01", precoPix: "" })).ok).toBe(false);
+  });
+
   it.each([
     { preco: "0" },
     { preco: "" },
