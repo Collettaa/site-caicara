@@ -125,6 +125,77 @@ Resultado esperado:
 - sem outro router do Traefik usando os mesmos hosts
 - se alguma chave externa estiver errada, o site ainda sobe e responde
 
+## Loja — variáveis e deploy
+
+Variáveis no serviço (`docker service update --env-add NOME=valor site-caicara_web` ou na stack):
+
+| Variável | O que é |
+|---|---|
+| `LOJA_ASAAS_API_KEY` | Chave da conta Asaas **da loja**. Nunca a `ASAAS_API_KEY` (é do Aulão Rosa). |
+| `LOJA_ASAAS_URL` | Teste: `https://api-sandbox.asaas.com/v3`. Produção: `https://api.asaas.com/v3`. |
+| `ASAAS_WEBHOOK_TOKEN` | Token do webhook. O mesmo valor vai no painel do Asaas. |
+| `ADMIN_SENHA` | Senha do `/admin`. |
+| `ADMIN_COOKIE_SECRET` | Segredo que assina o cookie do admin. Trocar desloga todo mundo. |
+| `SITE_URL` | `https://caicara.store` (links do pedido e retorno do pagamento). |
+
+Gerar segredo (token do webhook e segredo do cookie), um para cada:
+
+```bash
+openssl rand -base64 32
+```
+
+`ASAAS_API_KEY` e `ASAAS_URL` continuam como estão: são do Aulão Rosa e da aula avulsa.
+
+### Menu "Loja"
+
+`LOJA_NO_MENU` é fixado no build, não no serviço. Sem ele a loja funciona em `/loja`, mas não aparece
+no menu. Só quando for abrir a loja:
+
+```bash
+cd /root/site-caicara && git pull
+H=$(git rev-parse --short HEAD)
+docker build --build-arg LOJA_NO_MENU=1 -t site-caicara:$H .
+docker service update --image site-caicara:$H site-caicara_web
+```
+
+Antes disso, o build é o de sempre (`docker build -t site-caicara:<hash> .`), sem `--build-arg`.
+Depois de aberta, todo build precisa do `--build-arg LOJA_NO_MENU=1`; sem ele o menu some.
+
+### Webhook no painel do Asaas
+
+Na conta da loja: Integrações → Webhooks → novo webhook.
+
+- URL: `https://caicara.store/api/loja/asaas`
+- Eventos: `PAYMENT_RECEIVED` e `PAYMENT_CONFIRMED`
+- Token de autenticação: o mesmo valor de `ASAAS_WEBHOOK_TOKEN`
+- Fila ativa
+
+Cadastrar o domínio `caicara.store` em Minha Conta → Informações. Sem isso o Asaas recusa o retorno
+automático para a página do pedido; a cobrança sai sem retorno e o log avisa.
+
+### Troca sandbox → produção
+
+1. `LOJA_ASAAS_URL=https://api.asaas.com/v3` e `LOJA_ASAAS_API_KEY` com a chave real.
+2. Criar o webhook na conta real (o da sandbox não vale lá), mesma URL, mesmos eventos, mesmo token.
+3. Cadastrar `caicara.store` em Minha Conta → Informações da conta real.
+4. Os pedidos do teste continuam no `loja.db` e saem no CSV (datas antes da abertura). Conferir o
+   estoque no `/admin` e cadastrar o produto de verdade.
+5. Build com `--build-arg LOJA_NO_MENU=1` (acima).
+
+### Backup
+
+Banco `loja.db` e fotos `loja/fotos/` ficam em `/app/data`, no volume `site_caicara_data` (no Swarm,
+o nome real leva o prefixo da stack: conferir com `docker volume ls | grep caicara_data`). Copiar
+esse volume copia a loja inteira:
+
+```bash
+VOL=$(docker volume ls -q | grep site_caicara_data)
+docker run --rm -v "$VOL":/data -v "$PWD":/backup alpine \
+  tar czf /backup/site-data-$(date +%F).tgz -C /data .
+```
+
+Roteiro de teste na sandbox: `docs/loja-teste.md`.
+
 ## Loja — webhook do Asaas
 
 O Asaas pausa a fila de webhooks quando o site responde erro várias vezes seguidas. Depois de queda

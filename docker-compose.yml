@@ -11,6 +11,19 @@ services:
       - EVOLUTION_INSTANCE=${EVOLUTION_INSTANCE}
       - AVISO_WHATSAPP=${AVISO_WHATSAPP}
       - AULAO_LISTA_KEY=${AULAO_LISTA_KEY}
+      # Pix do Aulão Rosa / aula avulsa (conta Asaas de sempre). URL com padrão: vazia quebraria o Aulão
+      - ASAAS_API_KEY=${ASAAS_API_KEY}
+      - ASAAS_URL=${ASAAS_URL:-https://api.asaas.com/v3}
+      # Loja: conta Asaas própria (sandbox no teste, produção depois)
+      - LOJA_ASAAS_API_KEY=${LOJA_ASAAS_API_KEY}
+      - LOJA_ASAAS_URL=${LOJA_ASAAS_URL}
+      # Loja: token do webhook do Asaas (o mesmo cadastrado no painel)
+      - ASAAS_WEBHOOK_TOKEN=${ASAAS_WEBHOOK_TOKEN}
+      # Loja: senha do /admin e segredo que assina o cookie da sessão
+      - ADMIN_SENHA=${ADMIN_SENHA}
+      - ADMIN_COOKIE_SECRET=${ADMIN_COOKIE_SECRET}
+      # Loja: endereço público, usado nos links do pedido e no retorno do pagamento
+      - SITE_URL=${SITE_URL:-https://caicara.store}
     volumes:
       - site_caicara_data:/app/data
     networks:
