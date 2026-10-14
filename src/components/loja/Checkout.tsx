@@ -76,7 +76,7 @@ export function Checkout({ itens, totalPix, totalCartao, parcelas, onPedido }: P
         setEnviando(false);
         return;
       }
-      router.push(`/loja/pedido/${data.codigo}`);
+      router.push(`/loja/pedido/${data.codigo}`, { scroll: true });
       onPedido();
     } catch {
       setError("Sem conexão. Tenta de novo.");

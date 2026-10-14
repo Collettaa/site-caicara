@@ -64,6 +64,11 @@ export function PedidoStatus({ codigo }: { codigo: string }) {
 
   const status = pedido?.status;
 
+  // Vindo do checkout, a página herdaria a rolagem do formulário: abre sempre no topo.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     // Primeira leitura e, enquanto aguarda pagamento, uma consulta a cada 5 s.
     if (status !== undefined && status !== "aguardando") return;
