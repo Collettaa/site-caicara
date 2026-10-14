@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 
 export default function CarrinhoPage() {
   return (
-    <section className="bg-zinc-50 py-8 sm:py-12">
+    <section className="loja-areia py-8 sm:py-12">
       <div className="container">
-        <Link href="/loja" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-600 hover:text-black">
+        <Link href="/loja" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-700 hover:text-black">
           <ArrowLeft className="h-4 w-4" />
           Continuar comprando
         </Link>
-        <h1 className="mt-4 mb-8 font-heading text-4xl font-black uppercase tracking-tight sm:text-5xl">Carrinho</h1>
+        <h1 className="mt-4 mb-8 font-heading text-5xl font-bold uppercase leading-[0.95] sm:text-6xl">Carrinho</h1>
         <Carrinho />
       </div>
     </section>

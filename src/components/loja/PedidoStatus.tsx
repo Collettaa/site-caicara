@@ -22,9 +22,15 @@ interface DadosPedido {
 const INTERVALO_MS = 5000;
 
 const botaoPrincipal =
-  "inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-caicara-yellow px-8 text-sm font-bold uppercase tracking-[0.14em] text-black transition-transform hover:-translate-y-0.5 disabled:opacity-60";
+  "inline-flex h-14 w-full items-center justify-center gap-3 bg-black px-8 text-base font-bold text-white hover:bg-zinc-800 disabled:opacity-60";
 
-const cardClass = "rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-xl shadow-zinc-950/5 sm:p-8";
+/** Pix: amarelo com borda preta. */
+const botaoPix =
+  "inline-flex h-14 w-full items-center justify-center gap-3 border-2 border-black bg-[#f8d808] px-8 text-base font-bold text-black hover:bg-black hover:text-white";
+
+const cardClass = "border-2 border-black bg-white p-5 sm:p-8";
+const tituloClass = "font-heading text-3xl font-bold uppercase leading-none";
+const erroClass = "border-l-4 border-red-700 bg-red-100 px-4 py-3 text-left font-semibold text-black";
 
 function hora(iso: string) {
   return new Date(iso).toLocaleTimeString("pt-BR", {
@@ -83,9 +89,9 @@ export function PedidoStatus({ codigo }: { codigo: string }) {
   if (naoAchei) {
     return (
       <div className={`${cardClass} text-center`}>
-        <h2 className="font-heading text-3xl font-black uppercase tracking-tight">Pedido não encontrado</h2>
-        <p className="mt-3 text-zinc-600">Confere o link que chegou no WhatsApp.</p>
-        <Link href="/loja" className="mt-6 inline-flex font-semibold underline">
+        <h2 className={tituloClass}>Pedido não encontrado</h2>
+        <p className="mt-3 text-zinc-700">Confere o link que chegou no WhatsApp.</p>
+        <Link href="/loja" className={`mt-6 ${botaoPrincipal}`}>
           Ir para a loja
         </Link>
       </div>
@@ -94,9 +100,9 @@ export function PedidoStatus({ codigo }: { codigo: string }) {
 
   if (!pedido) {
     return (
-      <div className="flex flex-col items-center gap-3 py-16 text-zinc-500">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        {falhaRede ? <p className="text-sm">Sem conexão. Tentando de novo…</p> : null}
+      <div className="flex flex-col items-center gap-3 py-16 text-zinc-700">
+        <Loader2 className="h-6 w-6 motion-safe:animate-spin" aria-label="Carregando" />
+        {falhaRede ? <p className={erroClass}>Sem conexão. Tentando de novo…</p> : null}
       </div>
     );
   }
@@ -111,14 +117,14 @@ export function PedidoStatus({ codigo }: { codigo: string }) {
         ) : null}
         {pedido.status === "cancelado" ? (
           <div className={`${cardClass} text-center`}>
-            <h2 className="font-heading text-3xl font-black uppercase tracking-tight">Pedido cancelado</h2>
-            <p className="mt-3 text-zinc-600">Nada foi cobrado. Quer fazer outro?</p>
+            <h2 className={tituloClass}>Pedido cancelado</h2>
+            <p className="mt-3 text-zinc-700">Nada foi cobrado. Quer fazer outro?</p>
             <Link href="/loja" className={`mt-6 ${botaoPrincipal}`}>
               Ir para a loja
             </Link>
           </div>
         ) : null}
-        {falhaRede ? <p className="mt-3 text-center text-sm text-zinc-500">Sem conexão. Tentando de novo…</p> : null}
+        {falhaRede ? <p className={`mt-3 ${erroClass}`}>Sem conexão. Tentando de novo…</p> : null}
       </div>
 
       <Resumo pedido={pedido} />
@@ -143,58 +149,56 @@ function Aguardando({ pedido }: { pedido: DadosPedido }) {
 
   return (
     <div className={`${cardClass} text-center`}>
-      <span className="inline-flex rounded-full bg-caicara-yellow/20 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-zinc-800">
-        Pedido feito
-      </span>
-      <h2 className="mt-4 font-heading text-3xl font-black uppercase tracking-tight">
+      <span className="inline-flex bg-[#f8d808] px-3 py-1 text-sm font-bold text-black">Pedido feito</span>
+      <h2 className={`mt-4 ${tituloClass}`}>
         {ehPix ? `Falta o Pix de ${reais(pedido.total)}` : `Falta pagar ${reais(pedido.total)}`}
       </h2>
       {pedido.reservadoAte ? (
-        <p className="mt-2 inline-flex items-center gap-2 text-zinc-600">
-          <Clock className="h-4 w-4" />
+        <p className="mt-3 inline-flex items-center gap-2 text-zinc-700">
+          <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
           Sua peça fica reservada até {hora(pedido.reservadoAte)}.
         </p>
       ) : null}
 
       {ehPix && pedido.pixQr ? (
         <>
-          <p className="mt-4 text-zinc-600">Aponta a câmera do app do banco ou usa o copia e cola.</p>
+          <p className="mt-4 text-zinc-700">Aponta a câmera do app do banco ou usa o copia e cola.</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`data:image/png;base64,${pedido.pixQr}`}
             alt="QR Code Pix do pedido"
-            className="mx-auto mt-6 h-56 w-56 rounded-2xl border border-zinc-200"
+            className="mx-auto mt-6 h-56 w-56 max-w-full border-2 border-black"
           />
         </>
       ) : null}
 
       {ehPix && pedido.pixCopiaCola ? (
         <>
-          <div className="mt-6 break-all rounded-2xl bg-zinc-50 p-4 text-left text-xs text-zinc-600">
+          <div className="mt-6 break-all border-2 border-dashed border-zinc-500 bg-white p-4 text-left text-xs text-zinc-800">
             {pedido.pixCopiaCola}
           </div>
-          <button type="button" onClick={copiar} className={`mt-4 ${botaoPrincipal}`}>
-            <Copy className="h-5 w-5" />
+          <button type="button" onClick={copiar} className={`mt-4 ${botaoPix}`}>
+            <Copy className="h-5 w-5" aria-hidden="true" />
             {copiado ? "Copiado!" : "Copiar código"}
           </button>
         </>
       ) : null}
 
       {ehPix && !pedido.pixQr && !pedido.pixCopiaCola && pedido.invoiceUrl ? (
-        <a href={pedido.invoiceUrl} className={`mt-6 ${botaoPrincipal}`}>
+        <a href={pedido.invoiceUrl} className={`mt-6 ${botaoPix}`}>
           Pagar pela fatura do Asaas
         </a>
       ) : null}
 
       {!ehPix && pedido.invoiceUrl ? (
         <a href={pedido.invoiceUrl} className={`mt-6 ${botaoPrincipal}`}>
-          <CreditCard className="h-5 w-5" />
+          <CreditCard className="h-5 w-5" aria-hidden="true" />
           Pagar com cartão
         </a>
       ) : null}
 
-      <p className="mt-4 inline-flex items-center gap-2 text-sm text-zinc-500">
-        <Loader2 className="h-4 w-4 animate-spin" />
+      <p className="mt-4 inline-flex items-center gap-2 text-sm text-zinc-700">
+        <Loader2 className="h-4 w-4 shrink-0 motion-safe:animate-spin" aria-hidden="true" />
         Esperando o pagamento. Esta tela atualiza sozinha.
       </p>
     </div>
@@ -237,8 +241,8 @@ function Expirado({ codigo, onReativado }: { codigo: string; onReativado: () => 
   if (esgotou) {
     return (
       <div className={`${cardClass} text-center`}>
-        <h2 className="font-heading text-3xl font-black uppercase tracking-tight">Esgotou 😕</h2>
-        <p className="mt-3 text-zinc-600">A peça acabou enquanto a reserva estava vencida. Nada foi cobrado.</p>
+        <h2 className={tituloClass}>Esgotou 😕</h2>
+        <p className="mt-3 text-zinc-700">A peça acabou enquanto a reserva estava vencida. Nada foi cobrado.</p>
         <Link href="/loja" className={`mt-6 ${botaoPrincipal}`}>
           Ver o que tem na loja
         </Link>
@@ -248,12 +252,12 @@ function Expirado({ codigo, onReativado }: { codigo: string; onReativado: () => 
 
   return (
     <form onSubmit={handleSubmit} className={cardClass}>
-      <h2 className="font-heading text-3xl font-black uppercase tracking-tight">Sua reserva venceu</h2>
-      <p className="mt-3 text-zinc-600">
+      <h2 className={tituloClass}>Sua reserva venceu</h2>
+      <p className="mt-3 text-zinc-700">
         Ainda dá pra garantir, se tiver estoque. Digita o CPF de novo: ele não fica salvo aqui.
       </p>
       <label className="mt-6 grid gap-2">
-        <span className="text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500">CPF</span>
+        <span className="text-sm font-semibold text-black">CPF</span>
         <input
           required
           name="cpf"
@@ -261,13 +265,17 @@ function Expirado({ codigo, onReativado }: { codigo: string; onReativado: () => 
           autoComplete="off"
           value={cpf}
           onChange={(e) => setCpf(e.target.value)}
-          className="h-14 rounded-2xl border border-zinc-300 px-4 text-lg outline-none focus:border-black"
+          className="h-14 w-full min-w-0 border-2 border-zinc-500 bg-white px-4 text-lg placeholder:text-zinc-500 focus:border-black"
           placeholder="000.000.000-00"
         />
       </label>
-      {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
+      {error ? (
+        <p role="alert" className={`mt-4 ${erroClass}`}>
+          {error}
+        </p>
+      ) : null}
       <button type="submit" disabled={enviando} className={`mt-6 ${botaoPrincipal}`}>
-        {enviando ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+        {enviando ? <Loader2 className="h-5 w-5 motion-safe:animate-spin" aria-hidden="true" /> : null}
         Garantir de novo
       </button>
     </form>
@@ -276,14 +284,14 @@ function Expirado({ codigo, onReativado }: { codigo: string; onReativado: () => 
 
 function Pago({ status }: { status: "pago" | "entregue" | "pago_sem_peca" }) {
   return (
-    <div className="rounded-[2rem] border border-green-200 bg-green-50 p-8 text-center">
-      <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
-      <h2 className="mt-4 font-heading text-3xl font-black uppercase tracking-tight">Pago ✅</h2>
+    <div className="border-2 border-black bg-[#f8d808] p-6 text-center text-black sm:p-8">
+      <CheckCircle2 className="mx-auto h-12 w-12" aria-hidden="true" />
+      <h2 className="mt-4 font-heading text-5xl font-bold uppercase leading-none">Pago ✅</h2>
       {status === "pago" ? (
-        <p className="mt-3 text-lg text-zinc-700">Tá tudo certo. É só retirar no box e mostrar este pedido no balcão.</p>
+        <p className="mt-3 text-lg text-black">Tá tudo certo. É só retirar no box e mostrar este pedido no balcão.</p>
       ) : null}
       {status === "pago" || status === "entregue" ? (
-        <p className="mt-3 text-zinc-700">
+        <p className="mt-3 text-black">
           Treinou com ela? Posta e marca o{" "}
           <a className="font-semibold underline underline-offset-4" href="https://instagram.com/caicarafit013" target="_blank" rel="noopener noreferrer">
             @caicarafit013
@@ -291,9 +299,9 @@ function Pago({ status }: { status: "pago" | "entregue" | "pago_sem_peca" }) {
           .
         </p>
       ) : null}
-      {status === "entregue" ? <p className="mt-3 text-lg text-zinc-700">Pedido já entregue. Bom treino!</p> : null}
+      {status === "entregue" ? <p className="mt-3 text-lg text-black">Pedido já entregue. Bom treino!</p> : null}
       {status === "pago_sem_peca" ? (
-        <p className="mt-3 text-lg text-zinc-700">
+        <p className="mt-3 text-lg text-black">
           O pagamento chegou depois da reserva vencer e a peça acabou. A gente te chama no WhatsApp pra trocar o
           tamanho ou devolver o dinheiro.
         </p>
@@ -305,24 +313,23 @@ function Pago({ status }: { status: "pago" | "entregue" | "pago_sem_peca" }) {
 function Resumo({ pedido }: { pedido: DadosPedido }) {
   return (
     <div className="grid gap-4">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500">Itens</h3>
-        <ul className="mt-3 grid gap-2">
+      <div className="recibo px-5 pt-5 text-black">
+        <h3 className="font-heading text-xl font-bold uppercase">Itens</h3>
+        <ul className="mt-3 grid gap-2 text-sm">
           {pedido.itens.map((i) => (
-            <li key={i.descricao} className="flex justify-between gap-4 text-zinc-800">
-              <span>
+            <li key={i.descricao} className="recibo-linha">
+              <span className="min-w-0">
                 {i.qtd}× {i.descricao}
               </span>
+              <span className="recibo-pontos" aria-hidden="true" />
               <span className="shrink-0 font-semibold">{reais(i.precoUnit * i.qtd)}</span>
             </li>
           ))}
         </ul>
-        <div className="mt-4 flex items-baseline justify-between gap-4 border-t border-zinc-100 pt-4">
-          <span className="text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500">Total</span>
-          <span className="text-right">
-            <span className="font-heading text-2xl font-black">{reais(pedido.total)}</span>
-            <span className="block text-xs text-zinc-500">{comoPagou(pedido.forma)}</span>
-          </span>
+        <div className="recibo-linha mt-4 border-t-2 border-dashed border-zinc-400 pt-4">
+          <span className="font-semibold">Total {comoPagou(pedido.forma)}</span>
+          <span className="recibo-pontos" aria-hidden="true" />
+          <span className="shrink-0 bg-[#f8d808] px-2 font-heading text-2xl font-bold">{reais(pedido.total)}</span>
         </div>
       </div>
       <Retirada />

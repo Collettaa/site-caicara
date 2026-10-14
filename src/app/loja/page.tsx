@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
-import { ProdutoCard } from "@/components/loja/ProdutoCard";
+import { BotaoCarrinho } from "@/components/loja/BotaoCarrinho";
+import { EtiquetaDoProduto, ProdutoCard } from "@/components/loja/ProdutoCard";
 import { ProvaSocial } from "@/components/loja/ProvaSocial";
 import { Retirada } from "@/components/loja/Retirada";
 import { getDb } from "@/lib/loja/db";
@@ -16,51 +16,97 @@ export const metadata: Metadata = {
   alternates: { canonical: "/loja" },
 };
 
+const tituloClass =
+  "font-heading text-[clamp(3.5rem,16vw,6.5rem)] font-bold uppercase leading-[0.95] tracking-[-0.02em] lg:text-[clamp(4.5rem,7vw,6.5rem)]";
+
+const botaoClass =
+  "inline-flex h-14 items-center justify-center gap-2 bg-black px-8 text-base font-bold text-white hover:bg-zinc-800";
+
 export default function LojaPage() {
   const produtos = listarAtivos(getDb());
+  const [destaque, ...resto] = produtos;
+  const foto = destaque?.fotos[0];
 
   return (
-    <div className="loja-areia">
-      <section className="bg-black text-white">
-        <div className="container flex flex-wrap items-end justify-between gap-6 py-12 sm:py-16">
-          <div>
-            <h1 className="font-heading text-[clamp(3.5rem,16vw,7.5rem)] font-bold uppercase leading-[0.85] tracking-[-0.02em]">
-              Seja
-              <br />Caiçara.
-            </h1>
-            <p className="mt-5 max-w-md text-lg text-zinc-300">
-              Camisetas feitas pra quem treina com a gente. Paga aqui e pega no próximo treino, em São Vicente.
-            </p>
+    <div className="loja-areia overflow-x-clip">
+      {/* Topo: o produto é a vitrine. A foto avança sobre a areia de baixo. */}
+      <section className="loja-escuro bg-black text-white">
+        <div className="container pt-5 lg:pt-8">
+          <div className="flex justify-end">
+            <BotaoCarrinho />
           </div>
-          <Link
-            href="/loja/carrinho"
-            className="inline-flex h-12 items-center justify-center gap-2 bg-[#f8d808] px-6 text-sm font-bold text-black focus-visible:outline focus-visible:outline-4 focus-visible:outline-white"
-          >
-            <ShoppingBag className="h-5 w-5" />
-            Ver carrinho
-          </Link>
+          <div className="grid gap-8 pt-4 lg:grid-cols-2 lg:items-center lg:gap-12 lg:pt-0">
+            <div>
+              <h1 className={tituloClass}>
+                Seja
+                <br />
+                Caiçara.
+              </h1>
+              <p className="mt-6 max-w-md text-lg text-zinc-300">
+                Camisetas feitas pra quem treina com a gente. Paga aqui e pega no próximo treino.
+              </p>
+              {destaque ? (
+                <div className="mt-10 hidden lg:block">
+                  <h2 className="font-heading text-4xl font-bold uppercase leading-none">{destaque.nome}</h2>
+                  <Link
+                    href={`/loja/${destaque.slug}`}
+                    className="mt-6 inline-flex h-14 items-center justify-center bg-[#f8d808] px-8 text-base font-bold text-black hover:bg-white"
+                  >
+                    Escolher tamanho
+                  </Link>
+                </div>
+              ) : null}
+            </div>
+
+            {destaque ? (
+              <div className="relative z-10 -mb-16 mt-2 sm:-mb-24 lg:mt-0">
+                <div className="aspect-square bg-white">
+                  {foto ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={foto} alt={destaque.nome} className="h-full w-full object-contain" loading="eager" />
+                  ) : null}
+                </div>
+                <div className="absolute right-3 top-10 sm:right-5">
+                  <EtiquetaDoProduto produto={destaque} balanca />
+                </div>
+              </div>
+            ) : (
+              <p className="pb-14 text-lg text-zinc-300 lg:pb-0">
+                A próxima camiseta ainda tá na gráfica. Enquanto isso, acompanha no Instagram.
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
-      <section className="py-14 sm:py-20">
-        <div className="container grid gap-14">
-          {produtos.length === 0 ? (
-            <p className="max-w-md text-lg text-zinc-700">
-              A próxima camiseta ainda tá na gráfica. Enquanto isso, acompanha no Instagram.
-            </p>
-          ) : (
-            <div className="grid gap-14 sm:grid-cols-2 lg:grid-cols-3">
-              {produtos.map((p, i) => (
-                <ProdutoCard key={p.id} produto={p} destaque={i === 0} />
+      <div className={`container grid gap-16 pb-16 sm:pb-20 ${destaque ? "pt-24 sm:pt-32" : "pt-12"}`}>
+        {destaque ? (
+          <div className="lg:hidden">
+            <h2 className="font-heading text-4xl font-bold uppercase leading-none">{destaque.nome}</h2>
+            <Link href={`/loja/${destaque.slug}`} className={`mt-5 w-full sm:w-auto ${botaoClass}`}>
+              Escolher tamanho
+            </Link>
+          </div>
+        ) : null}
+
+        {resto.length > 0 ? (
+          <section aria-labelledby="mais-da-loja">
+            <h2 id="mais-da-loja" className="font-heading text-3xl font-bold uppercase">
+              Mais da loja
+            </h2>
+            <div className="mt-4 grid gap-14 sm:grid-cols-2 lg:grid-cols-3">
+              {resto.map((p) => (
+                <ProdutoCard key={p.id} produto={p} />
               ))}
             </div>
-          )}
-          <div className="grid max-w-xl gap-5">
-            <ProvaSocial />
-            <Retirada />
-          </div>
+          </section>
+        ) : null}
+
+        <div className="grid max-w-xl gap-5">
+          <ProvaSocial />
+          <Retirada />
         </div>
-      </section>
+      </div>
     </div>
   );
 }

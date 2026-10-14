@@ -17,12 +17,12 @@ interface Props {
   onPedido: () => void;
 }
 
-const campoClass = "h-14 rounded-2xl border border-zinc-300 px-4 text-lg outline-none focus:border-black";
-const rotuloClass = "text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500";
+const campoClass = "h-14 w-full min-w-0 border-2 border-zinc-500 bg-white px-4 text-lg placeholder:text-zinc-500 focus:border-black";
+const rotuloClass = "text-sm font-semibold text-black";
 
 const formaClass = (ativo: boolean) =>
-  `flex items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-left transition-colors ${
-    ativo ? "border-black bg-black text-white" : "border-zinc-300 bg-white text-zinc-800 hover:border-black"
+  `flex items-center justify-between gap-3 border-2 px-4 py-4 text-left ${
+    ativo ? "border-black bg-black text-white" : "border-zinc-500 bg-white text-black hover:border-black"
   }`;
 
 export function Checkout({ itens, totalPix, totalCartao, parcelas, onPedido }: Props) {
@@ -88,9 +88,9 @@ export function Checkout({ itens, totalPix, totalCartao, parcelas, onPedido }: P
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-xl shadow-zinc-950/5 sm:p-8"
+      className="border-2 border-black bg-white p-5 sm:p-8"
     >
-      <h2 className="font-heading text-3xl font-black uppercase tracking-tight">Fechar pedido</h2>
+      <h2 className="font-heading text-3xl font-bold uppercase">Fechar pedido</h2>
       <div className="mt-6 grid gap-5">
         <label className="grid gap-2">
           <span className={rotuloClass}>Nome</span>
@@ -132,7 +132,7 @@ export function Checkout({ itens, totalPix, totalCartao, parcelas, onPedido }: P
             className={campoClass}
             placeholder="000.000.000-00"
           />
-          <span className="text-sm text-zinc-500">Só para gerar o pagamento. Não fica salvo aqui.</span>
+          <span className="text-sm text-zinc-700">Só para gerar o pagamento. Não fica salvo aqui.</span>
         </label>
 
         <fieldset className="grid gap-2">
@@ -146,14 +146,14 @@ export function Checkout({ itens, totalPix, totalCartao, parcelas, onPedido }: P
                 className={formaClass(forma === f.valor)}
                 onClick={() => setEscolha(f.valor)}
               >
-                <span className="text-sm font-bold uppercase tracking-[0.1em]">{f.titulo}</span>
+                <span className="font-bold">{f.titulo}</span>
                 <span className="text-lg font-bold">{f.valorTexto}</span>
               </button>
             ))}
           </div>
         </fieldset>
 
-        <label className="flex items-start gap-3 text-zinc-700">
+        <label className="flex items-start gap-3 text-zinc-800">
           <input
             type="checkbox"
             checked={aceitaMsgs}
@@ -174,17 +174,23 @@ export function Checkout({ itens, totalPix, totalCartao, parcelas, onPedido }: P
           aria-hidden="true"
         />
 
-        {error ? <p className="text-sm font-semibold text-red-600">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="border-l-4 border-red-700 bg-red-100 px-4 py-3 font-semibold text-black">
+            {error}
+          </p>
+        ) : null}
 
         <button
           type="submit"
           disabled={enviando}
-          className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-caicara-yellow px-8 text-sm font-bold uppercase tracking-[0.14em] text-black transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+          className={`inline-flex h-14 items-center justify-center gap-3 border-2 border-black px-8 text-base font-bold disabled:opacity-60 ${
+            forma === "pix" ? "bg-[#f8d808] text-black hover:bg-black hover:text-white" : "bg-black text-white hover:bg-zinc-800"
+          }`}
         >
-          {enviando ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+          {enviando ? <Loader2 className="h-5 w-5 motion-safe:animate-spin" aria-hidden="true" /> : null}
           {forma === "pix" ? "Gerar Pix" : "Ir para o pagamento"}
         </button>
-        <p className="text-center text-xs text-zinc-500">A peça fica reservada por 1 hora até o pagamento.</p>
+        <p className="text-center text-sm text-zinc-700">A peça fica reservada por 1 hora até o pagamento.</p>
       </div>
     </form>
   );

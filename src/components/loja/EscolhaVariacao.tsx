@@ -75,7 +75,7 @@ export function EscolhaVariacao({ produto, variacoes }: Props) {
   }
 
   if (variacoes.length === 0 || variacoes.every((v) => v.estoque <= 0)) {
-    return <p className="rounded-2xl bg-zinc-100 p-4 font-semibold text-zinc-700">Esgotado por enquanto. Volta logo.</p>;
+    return <p className="border-2 border-black bg-white p-4 font-semibold text-black">Esgotado por enquanto. Volta logo.</p>;
   }
 
   const nota = !escolhida

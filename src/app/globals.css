@@ -61,7 +61,45 @@ body {
 
 /* Loja: etiqueta de roupa pendurada no cordão. */
 .loja-areia {
-  background: #f2ebdd;
+  background: #eadbc0;
+}
+
+/* Foco visível em tudo que é clicável na loja; utilitários do Tailwind ainda podem trocar a cor. */
+@layer base {
+  .loja-areia :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid #000;
+    outline-offset: 2px;
+  }
+
+  .loja-areia .loja-escuro :is(a, button):focus-visible {
+    outline-color: #fff;
+  }
+}
+
+/* Recibo do carrinho: pontilhado entre item e valor, pé em zigue-zague. */
+.recibo {
+  --dente: 0.6rem;
+  background: #fff;
+  padding-bottom: calc(1.25rem + var(--dente));
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--dente)) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--dente) * 2) var(--dente) repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--dente)) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--dente) * 2) var(--dente) repeat-x;
+}
+
+.recibo-linha {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.recibo-pontos {
+  flex: 1 1 1rem;
+  min-width: 1rem;
+  border-bottom: 2px dotted #52525b;
+  transform: translateY(-0.3em);
 }
 
 /* O cordão fica fora do recorte; o conjunto gira em volta do ponto onde o cordão prende. */
@@ -104,7 +142,7 @@ body {
   height: 0.6rem;
   margin-left: -0.3rem;
   border-radius: 9999px;
-  background: #f2ebdd;
+  background: #eadbc0;
   box-shadow: 0 0 0 2px #000;
 }
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { EscolhaVariacao } from "@/components/loja/EscolhaVariacao";
+import { MiniaturasGaleria } from "@/components/loja/MiniaturasGaleria";
 import { precoLinha } from "@/components/loja/reais";
 import { ProvaSocial } from "@/components/loja/ProvaSocial";
 import { Retirada } from "@/components/loja/Retirada";
@@ -34,32 +35,38 @@ export default async function ProdutoPage({ params }: Props) {
   return (
     <section className="loja-areia py-8 sm:py-12">
       <div className="container">
-        <Link href="/loja" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-600 hover:text-black">
+        <Link href="/loja" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-700 hover:text-black">
           <ArrowLeft className="h-4 w-4" />
           Loja
         </Link>
 
         <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:items-start">
-          {/* Galeria: no celular arrasta pro lado; no computador, uma embaixo da outra. */}
-          <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:overflow-visible lg:px-0">
-            {produto.fotos.map((foto, i) => (
-              <a
-                key={foto}
-                href={foto}
-                target="_blank"
-                rel="noopener"
-                aria-label={`Abrir foto ${i + 1} de ${produto.nome} em tela cheia`}
-                className="w-[88%] shrink-0 snap-center focus-visible:outline focus-visible:outline-4 focus-visible:outline-black lg:w-full"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={foto}
-                  alt={`${produto.nome}, foto ${i + 1}`}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  className="aspect-square w-full bg-white object-contain"
-                />
-              </a>
-            ))}
+          {/* Galeria: no celular arrasta pro lado (ou toca na miniatura); no computador, uma embaixo da outra. */}
+          <div className="grid min-w-0 gap-3">
+            <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:grid lg:overflow-visible lg:px-0">
+              {produto.fotos.map((foto, i) => (
+                <a
+                  key={foto}
+                  id={`foto-${i}`}
+                  href={foto}
+                  target="_blank"
+                  rel="noopener"
+                  aria-label={
+                    i === 2 ? "Abrir a tabela de medidas em tela cheia" : `Abrir foto ${i + 1} de ${produto.nome} em tela cheia`
+                  }
+                  className="w-[88%] shrink-0 snap-center focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-[-4px] focus-visible:outline-black lg:w-full"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={foto}
+                    alt={i === 2 ? `Tabela de medidas de ${produto.nome}` : `${produto.nome}, foto ${i + 1}`}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    className="aspect-square w-full bg-white object-contain"
+                  />
+                </a>
+              ))}
+            </div>
+            <MiniaturasGaleria fotos={produto.fotos} nome={produto.nome} prefixo="foto" />
           </div>
 
           <div className="grid gap-6 lg:sticky lg:top-28">

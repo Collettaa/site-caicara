@@ -13,9 +13,9 @@ export default async function PedidoPage({ params }: { params: Promise<{ codigo:
   if (!CODIGO_VALIDO.test(codigo)) notFound();
 
   return (
-    <section className="bg-zinc-50 py-8 sm:py-12">
+    <section className="loja-areia py-8 sm:py-12">
       <div className="container">
-        <h1 className="mb-8 font-heading text-4xl font-black uppercase tracking-tight sm:text-5xl">Seu pedido</h1>
+        <h1 className="mb-8 font-heading text-5xl font-bold uppercase leading-[0.95] sm:text-6xl">Seu pedido</h1>
         <PedidoStatus codigo={codigo} />
       </div>
     </section>
