@@ -59,15 +59,15 @@ export default function LojaPage() {
             </div>
 
             {destaque ? (
-              <div className="relative z-10 -mb-16 mt-2 sm:-mb-24 lg:mt-0">
-                <div className="aspect-square bg-white">
+              <div className="relative z-10 -mb-16 mt-24 sm:-mb-24 lg:mt-20">
+                <div className="aspect-[11/10] overflow-hidden bg-zinc-800">
                   {foto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={foto} alt={destaque.nome} className="h-full w-full object-contain" loading="eager" />
+                    <img src={foto} alt={destaque.nome} className="h-full w-full object-cover" loading="eager" />
                   ) : null}
                 </div>
-                <div className="absolute right-3 top-10 sm:right-5">
-                  <EtiquetaDoProduto produto={destaque} balanca />
+                <div className="absolute -top-20 right-3 sm:right-5">
+                  <EtiquetaDoProduto produto={destaque} balanca pequena />
                 </div>
               </div>
             ) : (
