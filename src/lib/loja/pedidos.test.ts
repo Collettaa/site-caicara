@@ -142,10 +142,16 @@ describe("criarPedido", () => {
 
   it("variação inativa, produto oculto ou variação apagada → inativo (Review Focus 3)", () => {
     db.prepare("UPDATE variacoes SET ativo = 0 WHERE id = ?").run(babyM);
-    expect(pegaErro(() => pedido(babyM)).codigo).toBe("inativo");
+    const e1 = pegaErro(() => pedido(babyM));
+    expect(e1.codigo).toBe("inativo");
+    expect(e1.message).toBe("Camiseta Caiçara · Baby look M saiu da loja. Tira do carrinho e tenta de novo.");
     db.prepare("UPDATE produtos SET ativo = 0 WHERE id = ?").run(produtoId);
-    expect(pegaErro(() => pedido(babyP)).codigo).toBe("inativo");
-    expect(pegaErro(() => pedido(9999)).codigo).toBe("inativo");
+    const e2 = pegaErro(() => pedido(babyP));
+    expect(e2.codigo).toBe("inativo");
+    expect(e2.message).toBe("Camiseta Caiçara · Baby look P saiu da loja. Tira do carrinho e tenta de novo.");
+    const e3 = pegaErro(() => pedido(9999));
+    expect(e3.codigo).toBe("inativo");
+    expect(e3.message).toBe("Um item do carrinho saiu da loja. Tira ele e tenta de novo.");
     expect(estoque(babyP)).toBe(1);
   });
 

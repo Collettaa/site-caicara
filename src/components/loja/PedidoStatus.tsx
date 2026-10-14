@@ -71,14 +71,14 @@ export function PedidoStatus({ codigo }: { codigo: string }) {
 
   useEffect(() => {
     // Primeira leitura e, enquanto aguarda pagamento, uma consulta a cada 5 s.
-    if (status !== undefined && status !== "aguardando") return;
+    if (naoAchei || (status !== undefined && status !== "aguardando")) return;
     const primeira = status === undefined ? setTimeout(buscar, 0) : undefined;
     const timer = setInterval(buscar, INTERVALO_MS);
     return () => {
       clearTimeout(primeira);
       clearInterval(timer);
     };
-  }, [buscar, status]);
+  }, [buscar, status, naoAchei]);
 
   if (naoAchei) {
     return (
@@ -220,7 +220,10 @@ function Expirado({ codigo, onReativado }: { codigo: string; onReativado: () => 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         if (data.motivo === "estoque") setEsgotou(true);
-        else setError(typeof data.error === "string" ? data.error : "Não deu agora. Tenta de novo.");
+        else if (data.motivo === "status" || response.status === 404) {
+          // Já pago, reativado em outra aba ou sumiu: recarrega o pedido em vez de mostrar erro.
+          await onReativado();
+        } else setError(typeof data.error === "string" ? data.error : "Não deu agora. Tenta de novo.");
         setEnviando(false);
         return;
       }

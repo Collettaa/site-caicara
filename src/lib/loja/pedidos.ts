@@ -215,8 +215,9 @@ function validarItens(db: DatabaseSync, itens: ItemEntrada[], opcoes: { exigirAt
       throw new ErroLoja("limite", `Dá pra levar até ${MAX_POR_VARIACAO} peças de cada tamanho.`);
     }
     const v = variacaoCompleta(db, variacaoId);
-    if (!v || (opcoes.exigirAtivo && (!v.variacaoAtiva || !v.produtoAtivo))) {
-      throw new ErroLoja("inativo", "Um item do carrinho saiu da loja. Tira ele e tenta de novo.");
+    if (!v) throw new ErroLoja("inativo", "Um item do carrinho saiu da loja. Tira ele e tenta de novo.");
+    if (opcoes.exigirAtivo && (!v.variacaoAtiva || !v.produtoAtivo)) {
+      throw new ErroLoja("inativo", `${descricaoDe(v)} saiu da loja. Tira do carrinho e tenta de novo.`);
     }
     return { variacao: v, qtd };
   });

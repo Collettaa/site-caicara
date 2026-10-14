@@ -73,6 +73,7 @@ export function Checkout({ itens, totalPix, totalCartao, parcelas, onPedido }: P
         return;
       }
       if (typeof data.codigo !== "string") {
+        setError("Não deu pra fechar o pedido. Tenta de novo.");
         setEnviando(false);
         return;
       }
@@ -138,7 +139,13 @@ export function Checkout({ itens, totalPix, totalCartao, parcelas, onPedido }: P
           <legend className={`mb-2 ${rotuloClass}`}>Como vai pagar?</legend>
           <div className="grid gap-3">
             {formas.map((f) => (
-              <button key={f.valor} type="button" className={formaClass(forma === f.valor)} onClick={() => setEscolha(f.valor)}>
+              <button
+                key={f.valor}
+                type="button"
+                aria-pressed={forma === f.valor}
+                className={formaClass(forma === f.valor)}
+                onClick={() => setEscolha(f.valor)}
+              >
                 <span className="text-sm font-bold uppercase tracking-[0.1em]">{f.titulo}</span>
                 <span className="text-lg font-bold">{f.valorTexto}</span>
               </button>
