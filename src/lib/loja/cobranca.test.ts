@@ -146,6 +146,18 @@ describe("criarCobranca", () => {
     expect(chamadas[2].url).toBe(`${LOJA_URL}/payments/pay_3/pixQrCode`);
   });
 
+  it("pix: QR falhou depois do pagamento criado → devolve só a fatura, sem lançar", async () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    respostas.push((url) => (url.endsWith("/customers") ? json({ id: "cus_1" }) : undefined));
+    respostas.push((url) => (url.endsWith("/payments") ? json({ id: "pay_3", invoiceUrl: "https://asaas.test/i/3" }) : undefined));
+    respostas.push((url) => (url.endsWith("/pixQrCode") ? json({ erro: "fora" }, 503) : undefined));
+
+    const r = await criarCobranca(pedido({ forma: "pix" }), cliente);
+
+    expect(r).toEqual({ asaasId: "pay_3", invoiceUrl: "https://asaas.test/i/3" });
+    expect(aviso).toHaveBeenCalled();
+  });
+
   it("sem LOJA_ASAAS_API_KEY não cai na chave do Aulão", async () => {
     vi.stubEnv("LOJA_ASAAS_API_KEY", "");
     await expect(criarCobranca(pedido(), cliente)).rejects.toThrow();

@@ -124,3 +124,15 @@ Resultado esperado:
 - `https://caicara.store/blog` respondendo `200`
 - sem outro router do Traefik usando os mesmos hosts
 - se alguma chave externa estiver errada, o site ainda sobe e responde
+
+## Loja — webhook do Asaas
+
+O Asaas pausa a fila de webhooks quando o site responde erro várias vezes seguidas. Depois de queda
+do Asaas ou do site (deploy demorado, VPS fora):
+
+1. Abrir o painel do Asaas da loja → Integrações → Webhooks.
+2. Ver se a fila do webhook `https://caicara.store/api/loja/asaas` está pausada (ou com eventos com erro).
+3. Se estiver, reativar a fila. Os eventos parados são reenviados.
+
+Enquanto a fila estiver pausada, o verificador de 5 min ainda confirma os pedidos em aberto, mas o
+"Pago ✅" demora mais a aparecer.

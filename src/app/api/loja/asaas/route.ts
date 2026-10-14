@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
-import { paraLog } from "@/lib/loja/api";
+import { lerTextoLimitado, paraLog } from "@/lib/loja/api";
 import { consultarPagamento } from "@/lib/loja/cobranca";
 import { getDb } from "@/lib/loja/db";
 import { buscarPorCodigo, marcarPago } from "@/lib/loja/pedidos";
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
 
   let corpo: { event?: unknown; payment?: { externalReference?: unknown } };
   try {
-    const texto = await request.text();
-    if (Buffer.byteLength(texto) > LIMITE) return ok();
+    const texto = await lerTextoLimitado(request, LIMITE);
+    if (texto === null) return ok();
     corpo = JSON.parse(texto);
   } catch {
     return ok();

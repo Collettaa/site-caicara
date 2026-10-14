@@ -104,9 +104,15 @@ export async function criarCobranca(
   if (pedido.forma === "cartao2" && payment.installment) cobranca.parcelamentoId = payment.installment;
 
   if (pedido.forma === "pix") {
-    const pix = await asaasFetch<{ encodedImage: string; payload: string }>(cfg, `/payments/${payment.id}/pixQrCode`);
-    cobranca.pixQr = pix.encodedImage;
-    cobranca.pixCopiaCola = pix.payload;
+    // A cobrança já existe: QR que falhou não derruba a venda. A fatura do Asaas também mostra o Pix.
+    try {
+      const pix = await asaasFetch<{ encodedImage: string; payload: string }>(cfg, `/payments/${payment.id}/pixQrCode`);
+      cobranca.pixQr = pix.encodedImage;
+      cobranca.pixCopiaCola = pix.payload;
+    } catch (erro) {
+      const msg = erro instanceof Error ? erro.message : String(erro);
+      console.warn(`loja: QR do Pix do pedido ${pedido.id} falhou; segue com a fatura: ${msg.slice(0, 300)}`);
+    }
   }
 
   return cobranca;

@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
 import { isValidCpf } from "@/lib/contato";
-import { CODIGO_VALIDO, cobrar, ERRO_PAGAMENTO, erro, erroLoja, lerJson, paraLog } from "@/lib/loja/api";
-import { consultarPagamento } from "@/lib/loja/cobranca";
+import {
+  barreira,
+  CODIGO_VALIDO,
+  cobrar,
+  ERRO_PAGAMENTO,
+  erro,
+  erroLoja,
+  lerJson,
+  paraLog,
+  podeConsultar,
+} from "@/lib/loja/api";
+import { cancelarCobranca, consultarPagamento } from "@/lib/loja/cobranca";
 import { getDb } from "@/lib/loja/db";
 import {
   buscarPorCodigo,
@@ -40,8 +50,8 @@ export async function GET(_request: Request, { params }: Contexto) {
   let pedido = buscarPorCodigo(db, codigo);
   if (!pedido) return erro(NAO_ACHEI, 404);
 
-  // Pix pago agora: não espera o webhook nem o verificador.
-  if (pedido.status === "aguardando" && pedido.asaasId) {
+  // Pix pago agora: não espera o webhook nem o verificador. No máximo 1 consulta a cada 20 s por código.
+  if (pedido.status === "aguardando" && pedido.asaasId && podeConsultar(codigo)) {
     try {
       const r = await consultarPagamento(pedido);
       if (r.pago) {
@@ -69,7 +79,31 @@ export async function POST(request: Request, { params }: Contexto) {
   }
 
   const db = getDb();
-  if (!buscarPorCodigo(db, codigo)) return erro(NAO_ACHEI, 404);
+  const atual = buscarPorCodigo(db, codigo);
+  if (!atual) return erro(NAO_ACHEI, 404);
+  if (atual.status !== "expirado") return erroLoja(new ErroLoja("status", "Esse pedido não está vencido."));
+
+  const bloqueio = barreira(db, request, atual.whatsapp);
+  if (bloqueio) return bloqueio;
+
+  // Cobrança antiga: cancela antes de gerar outra. Não deu pra cancelar → pode ter sido paga; confere.
+  if (atual.asaasId || atual.asaasParcelamentoId) {
+    try {
+      await cancelarCobranca(atual);
+    } catch (e) {
+      console.error(`loja: cancelar cobrança antiga do pedido ${atual.id} falhou`, paraLog(e));
+      try {
+        const r = await consultarPagamento(atual);
+        if (r.pago) {
+          marcarPago(db, codigo, r.liquido, new Date());
+          return NextResponse.json({ codigo });
+        }
+      } catch (e2) {
+        console.error(`loja: consultar cobrança antiga do pedido ${atual.id} falhou`, paraLog(e2));
+        return erro(ERRO_PAGAMENTO, 502);
+      }
+    }
+  }
 
   let pedido: PedidoComItens;
   try {

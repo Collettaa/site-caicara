@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isValidCpf, normalizeWhatsapp } from "@/lib/contato";
-import { cobrar, ERRO_PAGAMENTO, erro, erroLoja, lerJson, paraLog } from "@/lib/loja/api";
+import { barreira, cobrar, ERRO_PAGAMENTO, erro, erroLoja, lerJson, paraLog } from "@/lib/loja/api";
 import { lojaAsaasCfg } from "@/lib/loja/cobranca";
 import { getDb } from "@/lib/loja/db";
 import { cancelar, criarPedido, ErroLoja, type EntradaPedido, type ItemEntrada } from "@/lib/loja/pedidos";
@@ -51,6 +51,9 @@ export async function POST(request: Request) {
   }
 
   const db = getDb();
+  const bloqueio = barreira(db, request, whatsapp);
+  if (bloqueio) return bloqueio;
+
   let pedido;
   try {
     pedido = criarPedido(db, { nome, whatsapp, aceitaMsgs: body.aceitaMsgs === true, forma, itens }, new Date());

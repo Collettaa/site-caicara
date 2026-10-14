@@ -149,6 +149,28 @@ describe("POST /api/loja/asaas", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("corpo gigante em stream → 200 sem consultar nada", async () => {
+    const pedaco = new TextEncoder().encode(" ".repeat(64 * 1024));
+    let enviados = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(c) {
+        if (enviados++ < 10) c.enqueue(pedaco);
+        else c.close();
+      },
+    });
+    const r = await POST(
+      new Request("http://localhost/api/loja/asaas", {
+        method: "POST",
+        body: stream,
+        headers: { "asaas-access-token": TOKEN },
+        duplex: "half",
+      } as RequestInit),
+    );
+    expect(r.status).toBe(200);
+    expect(enviados).toBeLessThan(10);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("Asaas fora na confirmação → 500 para o Asaas reenviar", async () => {
     const p = pedidoComCobranca();
     fetchMock.mockImplementation(async () => new Response("fora", { status: 503 }));
