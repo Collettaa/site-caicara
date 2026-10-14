@@ -74,9 +74,11 @@ const memoria = globalThis as typeof globalThis & {
   __lojaUltimaConsulta?: Map<string, number>;
 };
 
-/** IP do cliente (ver `ipDoCliente`). */
+/** IP do cliente (ver `ipDoCliente`). Com LOJA_LOG_IP=1 vai pro log, para conferir o Traefik. */
 export function ipDe(request: Request): string {
-  return ipDoCliente(request.headers);
+  const ip = ipDoCliente(request.headers);
+  if (process.env.LOJA_LOG_IP === "1") console.info("loja: ip", ip);
+  return ip;
 }
 
 /** Conta uma tentativa do IP. `false` = já fez 5 na última hora (essa não conta). */

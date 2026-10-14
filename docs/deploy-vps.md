@@ -127,6 +127,10 @@ Resultado esperado:
 
 ## Loja — variáveis e deploy
 
+> **⚠️ Até o Aulão Rosa (18/10): deploy só com `docker service update --image ... --env-add` das
+> variáveis da loja.** Não rodar `docker stack deploy` nem atualizar a stack no Portainer sem
+> conferir que `ASAAS_API_KEY` está no env da stack — senão o Pix do Aulão desliga.
+
 Variáveis no serviço (`docker service update --env-add NOME=valor site-caicara_web` ou na stack):
 
 | Variável | O que é |
@@ -137,6 +141,7 @@ Variáveis no serviço (`docker service update --env-add NOME=valor site-caicara
 | `ADMIN_SENHA` | Senha do `/admin`. |
 | `ADMIN_COOKIE_SECRET` | Segredo que assina o cookie do admin. Trocar desloga todo mundo. |
 | `SITE_URL` | `https://caicara.store` (links do pedido e retorno do pagamento). |
+| `LOJA_LOG_IP` | Opcional. `1` loga `loja: ip <ip>` a cada pedido, para conferir que o Traefik passa o IP real (ver `docs/loja-teste.md` → "IP do cliente"). Tirar depois de conferir. |
 
 Gerar segredo (token do webhook e segredo do cookie), um para cada:
 

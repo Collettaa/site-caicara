@@ -52,6 +52,12 @@ O id da cobrança (`pay_...`) está no painel da sandbox.
 - [ ] **Última peça.** Variação com estoque 1: dois pedidos seguidos (duas abas) → o segundo recebe erro
       de estoque; estoque fica 0, nunca negativo.
 
+- [ ] **Expirou → reativa pelo lembrete → paga.** Pedido com a caixinha marcada, sem pagar → espera
+      expirar e chegar o lembrete de 1h → abrir o link do lembrete no celular → "Sua reserva venceu" →
+      CPF → "Garantir de novo" (reativar) → QR novo na tela → pagar (simular) → "Pago ✅". No `/admin` o pedido aparece pago;
+      no painel da sandbox a cobrança antiga continua removida e só a nova está paga. Reativar não pode
+      dar erro por a cobrança antiga já ter sido cancelada na expiração.
+
 ## Lembretes
 
 - [ ] **1h com caixinha.** Pedido com a caixinha de mensagens **marcada**, sem pagar → lembrete de 1h
@@ -85,6 +91,17 @@ O id da cobrança (`pay_...`) está no painel da sandbox.
 - [ ] **Estoque.** Botão − com estoque 0 não deixa negativo.
 - [ ] **CSV.** Exportar vendas → abre no Excel/Sheets; uma linha por pedido pago, com valor bruto,
       **valor líquido** (sem a taxa do Asaas), forma e origem (site/balcão). CPF não aparece.
+
+## IP do cliente
+
+- [ ] **Logar o IP.** Subir o serviço com `LOJA_LOG_IP=1`
+      (`docker service update --env-add LOJA_LOG_IP=1 site-caicara_web`), fazer um pedido pelo
+      celular **no 4G** (fora do Wi-Fi do box) e conferir no log
+      (`docker service logs --since 5m site-caicara_web | grep "loja: ip"`) que `ipDoCliente` mostra o
+      IP real do celular, não um IP interno do Swarm. Se mostrar `10.x`, o Traefik está em modo
+      ingress — ajustar (porta do Traefik em `mode: host`) antes de abrir: sem o IP real, o limite de
+      pedidos por IP e a trava do login do `/admin` valem para todo mundo junto. Depois tirar:
+      `docker service update --env-rm LOJA_LOG_IP site-caicara_web`.
 
 ## Não quebrou o resto
 
