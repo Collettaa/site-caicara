@@ -1,5 +1,9 @@
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { ASAAS_URL_PADRAO, asaasFetch } from "@/lib/asaas";
+import { enviarWhatsapp } from "@/lib/whatsapp";
+
+export { formatWhatsapp, isValidCpf, normalizeWhatsapp } from "@/lib/contato";
 
 export const aulaoRosa = {
   title: "Aulão Rosa",
@@ -28,20 +32,6 @@ export type Inscricao = {
 
 const dataDir = process.env.DATA_DIR ?? path.join(process.cwd(), "data");
 const dataFile = path.join(dataDir, "aulao-rosa.jsonl");
-
-export function normalizeWhatsapp(value: string) {
-  const digits = value.replace(/\D/g, "");
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-  if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) return digits;
-  return null;
-}
-
-export function formatWhatsapp(digits: string) {
-  const local = digits.slice(2);
-  const ddd = local.slice(0, 2);
-  const rest = local.slice(2);
-  return `(${ddd}) ${rest.slice(0, rest.length - 4)}-${rest.slice(-4)}`;
-}
 
 export async function saveInscricao(inscricao: Inscricao) {
   await mkdir(dataDir, { recursive: true });
@@ -84,46 +74,17 @@ export async function notifyInscricao(inscricao: Inscricao, total: number) {
     `Total: ${total}`,
   ].join("\n");
 
-  try {
-    await fetch(`${EVOLUTION_URL}/message/sendText/${EVOLUTION_INSTANCE}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", apikey: EVOLUTION_API_KEY },
-      body: JSON.stringify({ number: AVISO_WHATSAPP, text }),
-      signal: AbortSignal.timeout(8000),
-    });
-  } catch (error) {
-    console.error("aulao-rosa: aviso no WhatsApp falhou", error);
-  }
-}
-
-export function isValidCpf(value: string) {
-  const cpf = value.replace(/\D/g, "");
-  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-  for (const size of [9, 10]) {
-    let sum = 0;
-    for (let i = 0; i < size; i++) sum += Number(cpf[i]) * (size + 1 - i);
-    const digit = ((sum * 10) % 11) % 10;
-    if (digit !== Number(cpf[size])) return false;
-  }
-  return true;
+  await enviarWhatsapp(AVISO_WHATSAPP, text);
 }
 
 // Cobrança Pix da aula avulsa pelo Asaas.
-async function asaas<T>(pathname: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${process.env.ASAAS_URL ?? "https://api.asaas.com/v3"}${pathname}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      "User-Agent": "caicara-site",
-      access_token: process.env.ASAAS_API_KEY ?? "",
-    },
-    signal: AbortSignal.timeout(10000),
-    cache: "no-store",
-  });
-  if (!response.ok) {
-    throw new Error(`asaas ${pathname} ${response.status}: ${await response.text()}`);
-  }
-  return response.json() as Promise<T>;
+// Conta do Aulão: ASAAS_* (a loja tem a dela, LOJA_ASAAS_*).
+function asaas<T>(pathname: string, init?: RequestInit): Promise<T> {
+  return asaasFetch<T>(
+    { url: process.env.ASAAS_URL ?? ASAAS_URL_PADRAO, apiKey: process.env.ASAAS_API_KEY ?? "" },
+    pathname,
+    init,
+  );
 }
 
 export const asaasEnabled = () => Boolean(process.env.ASAAS_API_KEY);
