@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/admin/balcao", label: "Balcão" },
   { href: "/admin/produtos", label: "Produtos" },
   { href: "/admin/aulao", label: "Aulão" },
+  { href: "/admin/financeiro", label: "Financeiro" },
 ];
 
 const base =
@@ -32,7 +33,7 @@ export function AdminNav() {
         ))}
         {/* Rota de arquivo: <a> normal para o navegador baixar. */}
         <a href="/admin/vendas.csv" className={`${base} bg-zinc-800 text-white`}>
-          CSV
+          CSV loja
         </a>
         <form action={sairAction} className="ml-auto shrink-0">
           <button type="submit" className={`${base} border border-zinc-700 text-zinc-300`}>
