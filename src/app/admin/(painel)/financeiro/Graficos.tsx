@@ -245,3 +245,57 @@ export function Acumulado({
     </div>
   );
 }
+
+/** Uma série só (ex.: check-ins da TotalPass por dia) — sem legenda, o título da seção nomeia. */
+export function BarrasSimples({ valores, cor, singular, plural }: { valores: number[]; cor: string; singular: string; plural: string }) {
+  const [foco, setFoco] = useState<number | null>(null);
+  const max = Math.max(...valores, 0);
+  const pot = max > 0 ? 10 ** Math.floor(Math.log10(max)) : 1;
+  const teto = max > 0 ? Math.ceil(max / pot) * pot : 10;
+  const passo = larguraUtil / valores.length;
+  const largura = Math.max(2, passo - 2);
+  const y = (v: number) => M.t + alturaUtil - (v / teto) * alturaUtil;
+
+  return (
+    <div className="relative">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full max-w-3xl" role="img" aria-label="Por dia">
+        {[0, teto / 2, teto].map((m) => (
+          <g key={m}>
+            <line x1={M.l} x2={W - M.r} y1={y(m)} y2={y(m)} stroke="#e4e4e7" strokeWidth={1} />
+            <text x={M.l - 6} y={y(m) + 4} textAnchor="end" fontSize={13} fill="#71717a">
+              {m}
+            </text>
+          </g>
+        ))}
+        {valores.map((v, i) => (
+          <g key={i}>
+            {v > 0 ? (
+              <rect x={M.l + i * passo + 1} y={y(v)} width={largura} height={y(0) - y(v)} rx={Math.min(4, largura / 2)} fill={cor} />
+            ) : null}
+            {(i + 1) % 5 === 0 || i === 0 ? (
+              <text x={M.l + i * passo + 1 + largura / 2} y={H - 8} textAnchor="middle" fontSize={13} fill="#71717a">
+                {i + 1}
+              </text>
+            ) : null}
+            <rect
+              x={M.l + i * passo}
+              y={M.t}
+              width={passo}
+              height={alturaUtil}
+              fill="transparent"
+              onMouseEnter={() => setFoco(i)}
+              onMouseLeave={() => setFoco(null)}
+              onClick={() => setFoco(i)}
+            />
+          </g>
+        ))}
+        <line x1={M.l} x2={W - M.r} y1={y(0)} y2={y(0)} stroke="#a1a1aa" strokeWidth={1} />
+      </svg>
+      {foco !== null ? (
+        <div className="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-2xl bg-zinc-950 px-3 py-2 text-sm font-bold text-white shadow-lg">
+          Dia {foco + 1} · {valores[foco]} {valores[foco] === 1 ? singular : plural}
+        </div>
+      ) : null}
+    </div>
+  );
+}

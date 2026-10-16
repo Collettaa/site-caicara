@@ -4,7 +4,9 @@ import { ChevronLeft, ChevronRight, Download, RefreshCw } from "lucide-react";
 import { exigirAdmin } from "@/lib/admin-auth";
 import { financeiroAtivo, financeiroDoMes, hojeSP, mesValido } from "@/lib/financeiro/asaas";
 import { type Aberto, NOME_ORIGEM, ORDEM_ORIGEM, type Origem, acumulado } from "@/lib/financeiro/resumo";
-import { Acumulado, BarrasPorDia, Legenda } from "./Graficos";
+import { totalPassDoMes } from "@/lib/financeiro/totalpass";
+import { importarTotalPassAction } from "./actions";
+import { Acumulado, BarrasPorDia, BarrasSimples, Legenda } from "./Graficos";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Financeiro" };
@@ -22,7 +24,7 @@ function vizinho(mes: string, passo: number) {
 export default async function FinanceiroPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string; origem?: string; dia?: string; atualizar?: string }>;
+  searchParams: Promise<{ mes?: string; origem?: string; dia?: string; atualizar?: string; tp?: string; novos?: string }>;
 }) {
   await exigirAdmin();
   const sp = await searchParams;
@@ -33,6 +35,7 @@ export default async function FinanceiroPage({
   if (!financeiroAtivo()) {
     return <Aviso texto="Chave do Asaas não configurada no servidor." />;
   }
+  const tp = await totalPassDoMes(mes);
   let dados, anterior;
   try {
     [dados, anterior] = await Promise.all([
@@ -132,6 +135,59 @@ export default async function FinanceiroPage({
         </p>
       </Secao>
 
+      <div id="totalpass" className="scroll-mt-24" />
+      <Secao titulo="TotalPass · previsto">
+        <p className="-mt-2 mb-4 text-sm text-zinc-500">
+          Check-in é <strong>previsto a receber</strong>, não é caixa: só vira dinheiro quando a TotalPass
+          deposita. Não some com os números do Asaas.
+        </p>
+        {sp.tp === "ok" ? (
+          <p className="mb-4 rounded-2xl bg-green-100 p-3 font-semibold text-green-800">
+            Planilha importada: {Number(sp.novos) || 0} check-ins novos.
+          </p>
+        ) : null}
+        {sp.tp === "erro" ? (
+          <p className="mb-4 rounded-2xl bg-red-100 p-3 font-semibold text-red-700">
+            Não consegui ler. Use a planilha de tokens exportada da TotalPass (.xlsx).
+          </p>
+        ) : null}
+        {sp.tp === "vazio" ? <p className="mb-4 rounded-2xl bg-amber-100 p-3 font-semibold text-amber-800">Escolha o arquivo antes.</p> : null}
+        {tp.checkins ? (
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <Mini rotulo="Check-ins" valor={String(tp.checkins)} />
+              <Mini rotulo="Pessoas" valor={String(tp.pessoas)} />
+              <Mini rotulo="Previsto" valor={brl(tp.previsto)} className="col-span-2 sm:col-span-1" />
+            </div>
+            <p className="mt-2 text-xs text-zinc-500">
+              Planilha cobre de {dataCurta(tp.primeiro!)} a {dataCurta(tp.ultimo!)}.
+            </p>
+            <h3 className="mt-5 text-sm font-bold uppercase tracking-[0.12em] text-zinc-500">Check-ins por dia</h3>
+            <BarrasSimples valores={tp.porDia} cor="#6250d6" singular="check-in" plural="check-ins" />
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm font-semibold">Quem mais treinou pela TotalPass</summary>
+              <ol className="mt-2 grid gap-1 text-sm">
+                {tp.maisFrequentes.map((p) => (
+                  <li key={p.pessoa} className="flex justify-between border-b border-zinc-100 py-1">
+                    <span>{p.pessoa}</span>
+                    <span className="font-semibold">{p.checkins}</span>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </>
+        ) : (
+          <p className="text-zinc-500">Sem check-ins importados neste mês.</p>
+        )}
+        <form action={importarTotalPassAction} className="mt-5 grid gap-2 rounded-2xl bg-zinc-50 p-4">
+          <input type="hidden" name="mes" value={mes} />
+          <label className="text-sm font-semibold">Atualizar com a planilha de tokens da TotalPass (.xlsx)</label>
+          <input name="planilha" type="file" accept=".xlsx" required className="text-sm" />
+          <button className="h-12 rounded-full bg-black text-sm font-bold uppercase tracking-[0.12em] text-white">Importar</button>
+          <p className="text-xs text-zinc-500">Pode mandar a planilha inteira toda vez: o que já entrou não duplica.</p>
+        </form>
+      </Secao>
+
       <Secao titulo="Pago por origem">
         <div className="grid gap-3">
           {ORDEM_ORIGEM.map((o) => (
@@ -215,6 +271,15 @@ function Numero({ rotulo, valor, sub, destaque, alerta }: { rotulo: string; valo
       <p className={`text-xs font-bold uppercase tracking-[0.14em] ${destaque ? "text-caicara-yellow" : alerta ? "text-red-700" : "text-zinc-500"}`}>{rotulo}</p>
       <p className="mt-1 font-heading text-2xl font-black sm:text-3xl">{brl(valor)}</p>
       {sub ? <p className={`text-xs ${destaque ? "text-zinc-300" : "text-zinc-500"}`}>{sub}</p> : null}
+    </div>
+  );
+}
+
+function Mini({ rotulo, valor, className = "" }: { rotulo: string; valor: string; className?: string }) {
+  return (
+    <div className={`rounded-2xl bg-zinc-50 p-3 ${className}`}>
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-500">{rotulo}</p>
+      <p className="mt-1 font-heading text-xl font-black sm:text-2xl">{valor}</p>
     </div>
   );
 }
