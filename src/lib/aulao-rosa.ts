@@ -28,7 +28,12 @@ export type Inscricao = {
   vinculo: Vinculo;
   criadoEm: string;
   pagamentoId?: string;
+  pagoPorFora?: boolean; // marcado no admin: pagou em dinheiro/Pix direto
+  presente?: boolean; // check-in no dia, marcado no admin
 };
+
+/** Linha de ajuste no arquivo: muda campos de quem já está inscrito, sem mudar a ordem. */
+type Ajuste = { ajuste: string } & Partial<Pick<Inscricao, "pagoPorFora" | "presente">>;
 
 const dataDir = process.env.DATA_DIR ?? path.join(process.cwd(), "data");
 const dataFile = path.join(dataDir, "aulao-rosa.jsonl");
@@ -38,27 +43,41 @@ export async function saveInscricao(inscricao: Inscricao) {
   await appendFile(dataFile, `${JSON.stringify(inscricao)}\n`, "utf8");
 }
 
-// Mesma pessoa inscrita duas vezes vale a última inscrição.
-export async function listInscricoes(): Promise<Inscricao[]> {
-  let raw = "";
-  try {
-    raw = await readFile(dataFile, "utf8");
-  } catch {
-    return [];
-  }
+export async function atualizarInscricao(whatsapp: string, campos: Omit<Ajuste, "ajuste">) {
+  await mkdir(dataDir, { recursive: true });
+  await appendFile(dataFile, `${JSON.stringify({ ajuste: whatsapp, ...campos })}\n`, "utf8");
+}
 
+// Mesma pessoa inscrita duas vezes vale a última inscrição; ajustes só mudam campos.
+export function juntarInscricoes(raw: string): Inscricao[] {
   const byPhone = new Map<string, Inscricao>();
   for (const line of raw.split("\n")) {
     if (!line.trim()) continue;
     try {
-      const item = JSON.parse(line) as Inscricao;
+      const item = JSON.parse(line) as Inscricao | Ajuste;
+      if ("ajuste" in item) {
+        const atual = byPhone.get(item.ajuste);
+        const { ajuste: _ajuste, ...campos } = item;
+        if (atual) byPhone.set(item.ajuste, { ...atual, ...campos });
+        continue;
+      }
+      const antes = byPhone.get(item.whatsapp);
       byPhone.delete(item.whatsapp);
-      byPhone.set(item.whatsapp, item);
+      // reinscrição não apaga o que foi marcado no admin
+      byPhone.set(item.whatsapp, { ...item, pagoPorFora: antes?.pagoPorFora, presente: antes?.presente });
     } catch {
       // linha corrompida não derruba a lista
     }
   }
   return [...byPhone.values()];
+}
+
+export async function listInscricoes(): Promise<Inscricao[]> {
+  try {
+    return juntarInscricoes(await readFile(dataFile, "utf8"));
+  } catch {
+    return [];
+  }
 }
 
 // Aviso no WhatsApp do dono pela Evolution API. Falha aqui não perde a inscrição.
