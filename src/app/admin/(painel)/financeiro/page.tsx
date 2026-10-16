@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, RefreshCw } from "lucide-react";
 import { exigirAdmin } from "@/lib/admin-auth";
-import { financeiroAtivo, financeiroDoMes, mesValido } from "@/lib/financeiro/asaas";
-import { type Aberto, NOME_ORIGEM, ORDEM_ORIGEM, type Origem } from "@/lib/financeiro/resumo";
+import { financeiroAtivo, financeiroDoMes, hojeSP, mesValido } from "@/lib/financeiro/asaas";
+import { type Aberto, NOME_ORIGEM, ORDEM_ORIGEM, type Origem, acumulado } from "@/lib/financeiro/resumo";
+import { Acumulado, BarrasPorDia, Legenda } from "./Graficos";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Financeiro" };
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const dia = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
+const dataCurta = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 const NOME_MES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
 function vizinho(mes: string, passo: number) {
@@ -21,7 +22,7 @@ function vizinho(mes: string, passo: number) {
 export default async function FinanceiroPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string; origem?: string; atualizar?: string }>;
+  searchParams: Promise<{ mes?: string; origem?: string; dia?: string; atualizar?: string }>;
 }) {
   await exigirAdmin();
   const sp = await searchParams;
@@ -32,9 +33,12 @@ export default async function FinanceiroPage({
   if (!financeiroAtivo()) {
     return <Aviso texto="Chave do Asaas não configurada no servidor." />;
   }
-  let dados;
+  let dados, anterior;
   try {
-    dados = await financeiroDoMes(mes, { recarregar: Boolean(sp.atualizar) });
+    [dados, anterior] = await Promise.all([
+      financeiroDoMes(mes, { recarregar: Boolean(sp.atualizar) }),
+      financeiroDoMes(vizinho(mes, -1), { recarregar: Boolean(sp.atualizar) }),
+    ]);
   } catch (e) {
     console.error("[financeiro]", e instanceof Error ? e.message.slice(0, 300) : e);
     return <Aviso texto="O Asaas não respondeu agora. Toque em Atualizar daqui a pouco." mes={mes} />;
@@ -44,8 +48,13 @@ export default async function FinanceiroPage({
   const vencido = r.vencidos.reduce((t, a) => t + a.valor, 0);
   const caiu = r.caiuNaConta + r.antecipacaoLiquida;
   const maior = Math.max(1, ...Object.values(r.pagoPorOrigem));
-  const lista = origem ? r.pagamentos.filter((p) => p.origem === origem) : r.pagamentos;
+  const dia = sp.dia && sp.dia.startsWith(mes) && /^\d{4}-\d{2}-\d{2}$/.test(sp.dia) ? sp.dia : null;
+  const lista = r.pagamentos.filter((p) => (!origem || p.origem === origem) && (!dia || p.data === dia));
   const link = (extra: Record<string, string>) => `/admin/financeiro?${new URLSearchParams({ mes, ...extra })}`;
+  const hoje = hojeSP();
+  const hojeDia = hoje.startsWith(mes) ? Number(hoje.slice(8, 10)) : null;
+  const diasComVenda = r.porDia.filter((d) => d.total > 0);
+  const [anoAnt, mAnt] = vizinho(mes, -1).split("-");
 
   return (
     <div className="container py-6">
@@ -73,6 +82,55 @@ export default async function FinanceiroPage({
       <p className="mt-3 rounded-2xl bg-white p-4 text-lg ring-1 ring-zinc-200">
         Saldo na conta do Asaas agora: <strong>{brl(saldo)}</strong>
       </p>
+
+      <Secao titulo="Pago por dia">
+        <Legenda origens={ORDEM_ORIGEM} nomes={NOME_ORIGEM} />
+        <BarrasPorDia dias={r.porDia} origens={ORDEM_ORIGEM} nomes={NOME_ORIGEM} mes={mes} diaAtivo={dia} />
+        <p className="mt-2 text-xs text-zinc-500">
+          Cartão parcelado conta inteiro no dia da compra. Toque numa barra para ver o dia.
+        </p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-sm font-semibold">Ver em tabela ({diasComVenda.length} dias com pagamento)</summary>
+          <table className="mt-2 w-full text-sm">
+            <thead>
+              <tr className="text-left text-zinc-500">
+                <th className="py-1 font-semibold">Dia</th>
+                <th className="py-1 font-semibold">Maior origem</th>
+                <th className="py-1 text-right font-semibold">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {diasComVenda.map((d) => {
+                const top = ORDEM_ORIGEM.reduce((a, b) => (d.porOrigem[b] > d.porOrigem[a] ? b : a));
+                return (
+                  <tr key={d.dia} className="border-t border-zinc-100">
+                    <td className="py-1.5">
+                      <Link href={`${link({ dia: d.dia })}#quem-pagou`} className="underline">
+                        {dataCurta(d.dia)}
+                      </Link>
+                    </td>
+                    <td className="py-1.5">{NOME_ORIGEM[top]}</td>
+                    <td className="py-1.5 text-right font-semibold">{brl(d.total)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </details>
+      </Secao>
+
+      <Secao titulo="Acumulado no mês">
+        <Acumulado
+          atual={acumulado(r.porDia)}
+          anterior={acumulado(anterior.resumo.porDia)}
+          hojeDia={hojeDia}
+          rotuloAtual={NOME_MES[Number(m) - 1]}
+          rotuloAnterior={`${NOME_MES[Number(mAnt) - 1]}${anoAnt !== ano ? ` ${anoAnt}` : ""}`}
+        />
+        <p className="mt-2 text-xs text-zinc-500">
+          Mesmo dia do mês, lado a lado: mostra se o mês está à frente ou atrás do anterior.
+        </p>
+      </Secao>
 
       <Secao titulo="Pago por origem">
         <div className="grid gap-3">
@@ -106,10 +164,11 @@ export default async function FinanceiroPage({
         {r.aReceber.length ? <ListaAberta itens={r.aReceber} /> : <p className="text-zinc-500">Nada em aberto.</p>}
       </Secao>
 
-      <Secao titulo={`Quem pagou${origem ? ` · ${NOME_ORIGEM[origem]}` : ""} (${lista.length})`}>
-        {origem ? (
+      <div id="quem-pagou" className="scroll-mt-24" />
+      <Secao titulo={`Quem pagou${origem ? ` · ${NOME_ORIGEM[origem]}` : ""}${dia ? ` · dia ${dataCurta(dia)}` : ""} (${lista.length})`}>
+        {origem || dia ? (
           <Link href={link({})} className="mb-3 inline-block text-sm font-semibold underline">
-            Ver todas as origens
+            Ver tudo do mês
           </Link>
         ) : null}
         <ul className="divide-y divide-zinc-100">
@@ -118,11 +177,11 @@ export default async function FinanceiroPage({
               <div className="min-w-0">
                 <p className="font-bold">{p.cliente}</p>
                 <p className="truncate text-sm text-zinc-500">
-                  {dia(p.data)} · {NOME_ORIGEM[p.origem]} · {p.forma}
+                  {dataCurta(p.data)} · {NOME_ORIGEM[p.origem]} · {p.forma}
                   {p.parcelas > 1 ? ` ${p.parcelas}x` : ""}
                   {p.descricao ? ` · ${p.descricao}` : ""}
                 </p>
-                {p.caiEm ? <p className="text-xs text-zinc-400">cartão: cai a partir de {dia(p.caiEm)}/{p.caiEm.slice(2, 4)}</p> : null}
+                {p.caiEm ? <p className="text-xs text-zinc-400">cartão: cai a partir de {dataCurta(p.caiEm)}/{p.caiEm.slice(2, 4)}</p> : null}
               </div>
               <span className="shrink-0 font-bold">{brl(p.valor)}</span>
             </li>
@@ -131,12 +190,18 @@ export default async function FinanceiroPage({
         {lista.length === 0 ? <p className="text-zinc-500">Nenhum pagamento.</p> : null}
       </Secao>
 
-      <div className="mt-6 grid grid-cols-2 gap-3">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Link href={link({ atualizar: "1" })} className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white text-sm font-bold uppercase ring-1 ring-zinc-300">
           <RefreshCw className="h-4 w-4" /> Atualizar
         </Link>
         <a href={`/admin/financeiro.csv?mes=${mes}`} className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-black text-sm font-bold uppercase text-white">
           <Download className="h-4 w-4" /> CSV do mês
+        </a>
+        <a
+          href={`/admin/financeiro.csv?mes=${mes}&tipo=dias`}
+          className="col-span-2 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white text-sm font-bold uppercase ring-1 ring-zinc-300 sm:col-span-1"
+        >
+          <Download className="h-4 w-4" /> CSV por dia
         </a>
       </div>
     </div>
@@ -183,7 +248,7 @@ function ListaAberta({ itens }: { itens: Aberto[] }) {
           <div className="min-w-0">
             <p className="font-bold">{a.cliente}</p>
             <p className="truncate text-sm text-zinc-500">
-              vence {dia(a.vencimento)} · {NOME_ORIGEM[a.origem]}
+              vence {dataCurta(a.vencimento)} · {NOME_ORIGEM[a.origem]}
               {a.descricao ? ` · ${a.descricao}` : ""}
             </p>
           </div>

@@ -1,18 +1,20 @@
 import { exigirAdmin } from "@/lib/admin-auth";
 import { financeiroDoMes, mesValido } from "@/lib/financeiro/asaas";
-import { financeiroCsv } from "@/lib/financeiro/resumo";
+import { financeiroCsv, financeiroDiasCsv } from "@/lib/financeiro/resumo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   await exigirAdmin();
-  const mes = mesValido(new URL(request.url).searchParams.get("mes") ?? undefined);
+  const params = new URL(request.url).searchParams;
+  const mes = mesValido(params.get("mes") ?? undefined);
+  const porDia = params.get("tipo") === "dias";
   const { resumo } = await financeiroDoMes(mes);
-  return new Response(financeiroCsv(resumo), {
+  return new Response(porDia ? financeiroDiasCsv(resumo) : financeiroCsv(resumo), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="financeiro-asaas-${mes}.csv"`,
+      "Content-Disposition": `attachment; filename="financeiro-asaas-${mes}${porDia ? "-por-dia" : ""}.csv"`,
       "Cache-Control": "no-store",
     },
   });

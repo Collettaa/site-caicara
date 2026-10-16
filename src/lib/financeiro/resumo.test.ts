@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type Cobranca, type Movimento, financeiroCsv, montarResumo, origemDe } from "@/lib/financeiro/resumo";
+import { type Cobranca, type Movimento, acumulado, financeiroCsv, montarResumo, origemDe } from "@/lib/financeiro/resumo";
 
 describe("origemDe", () => {
   it.each([
@@ -63,6 +63,15 @@ describe("montarResumo", () => {
     expect(r.vencidos.map((v) => v.valor)).toEqual([15, 170]); // OVERDUE e PENDING que já passou
     expect(r.aReceber).toHaveLength(1);
     expect(r.aReceber[0]).toMatchObject({ vencimento: "2026-10-20", cliente: "Ana" });
+  });
+
+  it("por dia: 31 dias, total e origem no dia certo, acumulado", () => {
+    expect(r.porDia).toHaveLength(31);
+    expect(r.porDia[4]).toMatchObject({ dia: "2026-10-05", total: 170 });
+    expect(r.porDia[7].porOrigem.mensalidades).toBe(300);
+    const ac = acumulado(r.porDia);
+    expect(ac[6]).toBe(170);
+    expect(ac[30]).toBe(470);
   });
 
   it("csv com uma linha por compra", () => {

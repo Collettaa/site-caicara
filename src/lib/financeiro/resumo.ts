@@ -77,8 +77,12 @@ export type Pagamento = {
 
 export type Aberto = { vencimento: string; cliente: string; descricao: string; origem: Origem; valor: number };
 
+export type Dia = { dia: string; total: number; porOrigem: Record<Origem, number> };
+
 export type ResumoMes = {
   mes: string;
+  /** Um item por dia do mês, de 1 até o último (dia sem pagamento = 0). */
+  porDia: Dia[];
   pagoPorOrigem: Record<Origem, number>;
   pago: number;
   pagamentos: Pagamento[];
@@ -151,8 +155,24 @@ export function montarResumo(
     .map(aberto)
     .sort((a, b) => a.vencimento.localeCompare(b.vencimento));
 
+  const [ano, numMes] = mes.split("-").map(Number);
+  const diasNoMes = new Date(Date.UTC(ano, numMes, 0)).getUTCDate();
+  const porDia: Dia[] = Array.from({ length: diasNoMes }, (_, n) => ({
+    dia: `${mes}-${String(n + 1).padStart(2, "0")}`,
+    total: 0,
+    porOrigem: Object.fromEntries(ORDEM_ORIGEM.map((o) => [o, 0])) as Record<Origem, number>,
+  }));
+  for (const c of cobrancas) {
+    if (!PAGO.has(c.status) || !dentro(c.clientPaymentDate, mes)) continue;
+    const d = porDia[Number(c.clientPaymentDate!.slice(8, 10)) - 1];
+    const o = origemDe(c);
+    d.porOrigem[o] = centavos(d.porOrigem[o] + c.value);
+    d.total = centavos(d.total + c.value);
+  }
+
   return {
     mes,
+    porDia,
     pagoPorOrigem,
     pago: centavos(Object.values(pagoPorOrigem).reduce((t, v) => t + v, 0)),
     pagamentos: [...porCompra.values()].sort((a, b) => b.data.localeCompare(a.data)),
@@ -177,4 +197,22 @@ export function financeiroCsv(r: ResumoMes): string {
     );
   }
   return `﻿${linhas.join("\n")}\n`;
+}
+
+/** Soma corrida dia a dia (1º → último); serve para comparar com o mês anterior no mesmo dia. */
+export function acumulado(porDia: Dia[]): number[] {
+  let t = 0;
+  return porDia.map((d) => (t = centavos(t + d.total)));
+}
+
+/** CSV por dia (marketing): um dia por linha, total e cada origem — cruza com post e anúncio. */
+export function financeiroDiasCsv(r: ResumoMes): string {
+  const num = (v: number) => v.toFixed(2).replace(".", ",");
+  const semana = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+  const linhas = [["data", "dia_semana", "total", ...ORDEM_ORIGEM].join(";")];
+  for (const d of r.porDia) {
+    const ds = semana[new Date(`${d.dia}T12:00:00Z`).getUTCDay()];
+    linhas.push([d.dia, ds, num(d.total), ...ORDEM_ORIGEM.map((o) => num(d.porOrigem[o]))].join(";"));
+  }
+  return `\uFEFF${linhas.join("\n")}\n`;
 }
