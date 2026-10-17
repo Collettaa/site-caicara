@@ -12,6 +12,7 @@ export const aulaoRosa = {
   avulsaValor: 15,
   teacher: "prof. Maria",
   location: "Caiçara Fit · Av. Embaixador Pedro de Toledo, 593, São Vicente",
+  inscricoesAbertas: false, // encerradas em 17/10/2026
 };
 
 export const vinculoOptions = {

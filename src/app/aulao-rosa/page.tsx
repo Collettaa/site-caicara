@@ -81,7 +81,7 @@ export default function AulaoRosaPage() {
               href="#inscricao"
               className="mt-10 inline-flex h-14 items-center justify-center rounded-full bg-pink-500 px-8 text-sm font-bold uppercase tracking-[0.14em] text-white transition-transform hover:-translate-y-0.5"
             >
-              Quero me inscrever
+              {aulaoRosa.inscricoesAbertas ? "Quero me inscrever" : "Inscrições encerradas"}
             </a>
           </div>
           <div className="relative order-first mx-auto w-full max-w-[240px] sm:max-w-sm lg:order-none lg:max-w-md">
@@ -129,9 +129,11 @@ export default function AulaoRosaPage() {
         <div className="container grid gap-10 px-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
             <h2 className="font-heading text-3xl font-black uppercase tracking-tight sm:text-5xl">
-              Garanta seu lugar
+              {aulaoRosa.inscricoesAbertas ? "Garanta seu lugar" : "Lista fechada"}
             </h2>
-            <p className="mt-4 text-lg leading-relaxed text-zinc-600">Leva menos de um minuto.</p>
+            {aulaoRosa.inscricoesAbertas && (
+              <p className="mt-4 text-lg leading-relaxed text-zinc-600">Leva menos de um minuto.</p>
+            )}
             <div className="mt-8 grid gap-3">
               {comoEntrar(pixAtivo).map((item) => (
                 <div key={item.titulo} className="rounded-2xl border border-zinc-200 bg-white p-4">
@@ -149,7 +151,21 @@ export default function AulaoRosaPage() {
               ))}
             </ul>
           </div>
-          <InscricaoForm pixAtivo={pixAtivo} />
+          {aulaoRosa.inscricoesAbertas ? (
+            <InscricaoForm pixAtivo={pixAtivo} />
+          ) : (
+            <div className="rounded-[2rem] border border-zinc-200 bg-white p-8 sm:p-10">
+              <p className="font-heading text-3xl font-black uppercase tracking-tight text-pink-500 sm:text-4xl">
+                Inscrições encerradas
+              </p>
+              <p className="mt-4 text-lg leading-relaxed text-zinc-700">
+                Valeu, galera! A lista do Aulão Rosa fechou. Quem se inscreveu: {aulaoRosa.dateLabel.toLowerCase()}, aqui no box.
+              </p>
+              <p className="mt-4 text-lg leading-relaxed text-zinc-700">
+                Perdeu essa? A primeira semana de aula na Caiçara é grátis.
+              </p>
+            </div>
+          )}
         </div>
       </section>
     </>

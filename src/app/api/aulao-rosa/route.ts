@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   asaasEnabled,
+  aulaoRosa,
   createPixCharge,
   isValidCpf,
   listInscricoes,
@@ -14,6 +15,10 @@ import {
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!aulaoRosa.inscricoesAbertas) {
+    return NextResponse.json({ error: "Inscrições encerradas." }, { status: 410 });
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();
