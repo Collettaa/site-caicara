@@ -37,7 +37,6 @@ export const lojaNoMenu = process.env.LOJA_NO_MENU === "1";
 export const navigationLinks = [
   { href: "/sobre", label: "Sobre" },
   { href: "/#planos", label: "Planos" },
-  { href: "/aulao-rosa", label: "Aulão Rosa" },
   { href: "/eventos", label: "Eventos" },
   ...(lojaNoMenu ? [{ href: "/loja", label: "Loja" }] : []),
   { href: "/blog", label: "Blog" },

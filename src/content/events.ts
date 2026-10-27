@@ -15,6 +15,28 @@ export type EventItem = {
 
 export const events: EventItem[] = [
   {
+    slug: "aulao-rosa",
+    title: "Aulão Rosa",
+    label: "Outubro Rosa",
+    dateLabel: "18/10 | domingo, 9h",
+    location: "Box Caiçara Fit, São Vicente",
+    summary:
+      "No Outubro Rosa, a aula de domingo virou Aulão Rosa com a prof. Maria: 55 inscritos, todo mundo de rosa e cada um trazendo alguém para treinar junto.",
+    highlights: [
+      "Aula para todos os níveis, com aluno da casa treinando lado a lado com quem veio pela primeira vez.",
+      "Vem de rosa e traz alguém: o convite que encheu o box no domingo.",
+      "Cuidar de si pelo movimento e pela comunidade.",
+    ],
+    heroImage: "/images/events/aulao-rosa/aulao-rosa-hero.jpg",
+    gallery: [
+      "/images/events/aulao-rosa/aulao-rosa-sorriso.jpg",
+      "/images/events/aulao-rosa/aulao-rosa-galera.jpg",
+      "/images/events/aulao-rosa/aulao-rosa-dupla.jpg",
+      "/images/events/aulao-rosa/aulao-rosa-halter.jpg",
+    ],
+    ctaHref: siteConfig.instagramUrl,
+  },
+  {
     slug: "caicara-experience",
     title: "Yoga Day e Caiçara Experience",
     label: "Praia + bem-estar",

@@ -16,6 +16,12 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Aulão Rosa (18/10/2026) acabou: a página vira o recap em /eventos. A lista de inscritos continua.
+      {
+        source: "/aulao-rosa",
+        destination: "/eventos#aulao-rosa",
+        permanent: false,
+      },
       {
         source: "/:path*",
         has: [
