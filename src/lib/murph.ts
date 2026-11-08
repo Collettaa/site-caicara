@@ -29,6 +29,10 @@ export const versaoOptions = {
 } as const;
 export type Versao = keyof typeof versaoOptions;
 
+// Tamanhos ainda a confirmar com o fornecedor (pedido até 24/11).
+export const tamanhos = ["P", "M", "G", "GG"] as const;
+export type Tamanho = (typeof tamanhos)[number];
+
 export const vinculoOptions = {
   aluno: "Aluno Caiçara",
   totalpass: "TotalPass",
@@ -43,6 +47,7 @@ export type InscricaoMurph = {
   bateria: Bateria;
   versao: Versao;
   camiseta: boolean;
+  tamanho?: Tamanho; // só com camiseta; inscrições antigas não têm
   criadoEm: string;
   pago?: boolean; // marcado no admin: acertou inscrição/camiseta
   presente?: boolean; // check-in no dia
@@ -105,6 +110,18 @@ export async function listInscricoes(): Promise<InscricaoMurph[]> {
   }
 }
 
+/** Camisetas por tamanho, para o pedido ao fornecedor. `semTamanho` = pediu camiseta antes de existir o campo. */
+export function contarTamanhos(lista: InscricaoMurph[]) {
+  const porTamanho = Object.fromEntries(tamanhos.map((t) => [t, 0])) as Record<Tamanho, number>;
+  let semTamanho = 0;
+  for (const i of lista) {
+    if (!i.camiseta) continue;
+    if (i.tamanho && i.tamanho in porTamanho) porTamanho[i.tamanho]++;
+    else semTamanho++;
+  }
+  return { porTamanho, semTamanho };
+}
+
 /** Ocupação por bateria. `ignorar` = WhatsApp de quem está trocando de bateria (não conta contra ele mesmo). */
 export function ocupacao(lista: InscricaoMurph[], ignorar?: string): Record<Bateria, number> {
   const conta = Object.fromEntries(baterias.map((b) => [b, 0])) as Record<Bateria, number>;
@@ -125,7 +142,7 @@ export async function notifyInscricao(inscricao: InscricaoMurph, naBateria: numb
   const text = [
     `🏋️ Nova inscrição no Murph`,
     inscricao.nome,
-    `${vinculoOptions[inscricao.vinculo]} · ${versaoOptions[inscricao.versao]}${inscricao.camiseta ? " · quer camiseta" : ""}`,
+    `${vinculoOptions[inscricao.vinculo]} · ${versaoOptions[inscricao.versao]}${inscricao.camiseta ? ` · camiseta ${inscricao.tamanho ?? "sem tamanho"}` : ""}`,
     `Bateria ${bateriaLabel(inscricao.bateria)}: ${naBateria}/${murph.vagasPorBateria}`,
     `wa.me/${inscricao.whatsapp}`,
     `Total: ${total}`,

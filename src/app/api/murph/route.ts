@@ -10,10 +10,12 @@ import {
   notifyInscricao,
   ocupacao,
   saveInscricao,
+  tamanhos,
   versaoOptions,
   vinculoOptions,
   type Bateria,
   type InscricaoMurph,
+  type Tamanho,
   type Versao,
   type Vinculo,
 } from "@/lib/murph";
@@ -48,6 +50,7 @@ export async function POST(request: Request) {
   const bateria = body.bateria as Bateria;
   const versao = body.versao as Versao;
   const camiseta = body.camiseta;
+  const tamanho = body.tamanho as Tamanho;
 
   if (nome.length < 2) return NextResponse.json({ error: "Escreve seu nome." }, { status: 400 });
   if (!whatsapp) return NextResponse.json({ error: "Confere o WhatsApp com DDD." }, { status: 400 });
@@ -59,8 +62,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Escolhe a versão do Murph." }, { status: 400 });
   }
   if (typeof camiseta !== "boolean") return NextResponse.json({ error: "Diz se quer a camiseta." }, { status: 400 });
+  if (camiseta && !tamanhos.includes(tamanho)) {
+    return NextResponse.json({ error: "Escolhe o tamanho da camiseta." }, { status: 400 });
+  }
 
-  const inscricao: InscricaoMurph = { nome, whatsapp, vinculo, bateria, versao, camiseta, criadoEm: new Date().toISOString() };
+  const inscricao: InscricaoMurph = {
+    nome,
+    whatsapp,
+    vinculo,
+    bateria,
+    versao,
+    camiseta,
+    ...(camiseta ? { tamanho } : {}),
+    criadoEm: new Date().toISOString(),
+  };
 
   let resultado: { ok: true; naBateria: number; total: number } | { ok: false; livres: Bateria[] };
   try {

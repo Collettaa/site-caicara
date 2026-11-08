@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bateriaLabel, bateriasLivres, devePagar, juntarInscricoes, murph, ocupacao, type InscricaoMurph } from "@/lib/murph";
+import { bateriaLabel, bateriasLivres, contarTamanhos, devePagar, juntarInscricoes, murph, ocupacao, type InscricaoMurph } from "@/lib/murph";
 
 const pessoa = (n: number, extra: Partial<InscricaoMurph> = {}): InscricaoMurph => ({
   nome: `P${n}`,
@@ -32,6 +32,17 @@ describe("murph", () => {
     expect(lista).toHaveLength(1);
     expect(lista[0]).toMatchObject({ bateria: "20:00", pago: true });
     expect(ocupacao(lista)["06:00"]).toBe(0);
+  });
+
+  it("conta camiseta por tamanho e separa inscrição antiga sem tamanho", () => {
+    const lista = [
+      pessoa(1, { camiseta: true, tamanho: "M" }),
+      pessoa(2, { camiseta: true, tamanho: "M" }),
+      pessoa(3, { camiseta: true, tamanho: "GG" }),
+      pessoa(4, { camiseta: true }),
+      pessoa(5),
+    ];
+    expect(contarTamanhos(lista)).toEqual({ porTamanho: { P: 0, M: 2, G: 0, GG: 1 }, semTamanho: 1 });
   });
 
   it("só de fora ou quem pede camiseta tem algo a acertar", () => {

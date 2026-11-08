@@ -10,9 +10,11 @@ import {
   listInscricoes,
   normalizeWhatsapp,
   saveInscricao,
+  tamanhos,
   versaoOptions,
   vinculoOptions,
   type Bateria,
+  type Tamanho,
   type Versao,
   type Vinculo,
 } from "@/lib/murph";
@@ -51,9 +53,20 @@ export async function adicionarAction(form: FormData): Promise<void> {
     redirect("/admin/murph?erro=1");
   }
 
-  const camiseta = form.get("camiseta") === "on";
+  // Um campo só: "não quer" ou o tamanho. Não dá para marcar camiseta sem tamanho.
+  const tamanho = String(form.get("tamanho") ?? "") as Tamanho;
+  const camiseta = tamanhos.includes(tamanho);
   await emFila(async () => {
-    await saveInscricao({ nome, whatsapp, vinculo, bateria, versao, camiseta, criadoEm: new Date().toISOString() });
+    await saveInscricao({
+      nome,
+      whatsapp,
+      vinculo,
+      bateria,
+      versao,
+      camiseta,
+      ...(camiseta ? { tamanho } : {}),
+      criadoEm: new Date().toISOString(),
+    });
     const extras = { presente: form.get("presente") === "on", pago: form.get("pago") === "on" };
     if (extras.presente || extras.pago) await atualizarInscricao(whatsapp, extras);
   });

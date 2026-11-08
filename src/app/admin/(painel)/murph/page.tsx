@@ -5,11 +5,13 @@ import { exigirAdmin } from "@/lib/admin-auth";
 import {
   bateriaLabel,
   baterias,
+  contarTamanhos,
   devePagar,
   formatWhatsapp,
   listInscricoes,
   murph,
   ocupacao,
+  tamanhos,
   versaoOptions,
   vinculoOptions,
   type Bateria,
@@ -48,6 +50,7 @@ export default async function MurphAdminPage({
   );
 
   const camisetas = todos.filter((i) => i.camiseta).length;
+  const { porTamanho, semTamanho } = contarTamanhos(todos);
   const aReceber = todos.filter((i) => devePagar(i) && !i.pago).length;
   const contar = <K extends string>(campo: (i: (typeof todos)[number]) => K, v: K) => todos.filter((i) => campo(i) === v).length;
 
@@ -99,6 +102,20 @@ export default async function MurphAdminPage({
         ))}
       </div>
 
+      <div className="mt-3 rounded-3xl bg-white p-4 ring-1 ring-zinc-200">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">Camisetas por tamanho (pedido até 24/11)</p>
+        <div className="mt-2 flex flex-wrap gap-2 text-sm font-semibold">
+          {tamanhos.map((t) => (
+            <span key={t} className="rounded-full bg-black px-3 py-1 text-caicara-yellow">
+              {t}: {porTamanho[t]}
+            </span>
+          ))}
+          {semTamanho > 0 ? (
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">sem tamanho: {semTamanho}</span>
+          ) : null}
+        </div>
+      </div>
+
       <form className="mt-6 flex gap-2" action="/admin/murph">
         {filtro ? <input type="hidden" name="b" value={filtro} /> : null}
         <label className="relative flex-1">
@@ -129,7 +146,7 @@ export default async function MurphAdminPage({
                     {vinculoOptions[i.vinculo]} · {versaoOptions[i.versao]}
                     {i.camiseta ? (
                       <span className="inline-flex items-center gap-1 font-semibold text-zinc-800">
-                        <Shirt className="h-4 w-4" /> camiseta
+                        <Shirt className="h-4 w-4" /> camiseta {i.tamanho ?? "sem tamanho"}
                       </span>
                     ) : null}
                     {deve ? (
@@ -198,9 +215,12 @@ export default async function MurphAdminPage({
               <option key={v} value={v}>{versaoOptions[v]}</option>
             ))}
           </select>
-          <label className="flex items-center gap-3 text-lg">
-            <input type="checkbox" name="camiseta" className="h-6 w-6" /> Quer camiseta
-          </label>
+          <select name="tamanho" defaultValue="" className="h-14 rounded-2xl border border-zinc-300 bg-white px-4 text-lg">
+            <option value="">Sem camiseta</option>
+            {tamanhos.map((t) => (
+              <option key={t} value={t}>Camiseta {t}</option>
+            ))}
+          </select>
           <label className="flex items-center gap-3 text-lg">
             <input type="checkbox" name="pago" className="h-6 w-6" /> Já acertou
           </label>

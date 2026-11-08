@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, Loader2, MessageCircle } from "lucide-react";
-import type { Bateria, Versao, Vinculo } from "@/lib/murph";
+import type { Bateria, Tamanho, Versao, Vinculo } from "@/lib/murph";
 
 const VINCULOS: { valor: Vinculo; label: string }[] = [
   { valor: "aluno", label: "Aluno Caiçara" },
@@ -15,6 +15,8 @@ const VERSOES: { valor: Versao; label: string; texto: string }[] = [
   { valor: "dupla", label: "Em dupla", texto: "Mesmo treino, repetições divididas com alguém" },
   { valor: "meio", label: "Meio Murph", texto: "Metade de tudo" },
 ];
+
+const TAMANHOS: Tamanho[] = ["P", "M", "G", "GG"];
 
 const rotulo = (b: Bateria) => b.replace(/^0/, "").replace(":00", "h").replace(":", "h");
 
@@ -40,6 +42,7 @@ export function InscricaoMurphForm({
   const [bateria, setBateria] = useState<Bateria | null>(null);
   const [versao, setVersao] = useState<Versao | null>(null);
   const [camiseta, setCamiseta] = useState<boolean | null>(null);
+  const [tamanho, setTamanho] = useState<Tamanho | null>(null);
   const [livres, setLivres] = useState<Bateria[]>(livresIniciais);
   const [site, setSite] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
@@ -53,13 +56,14 @@ export function InscricaoMurphForm({
     if (!bateria) return setError("Escolhe a bateria.");
     if (!versao) return setError("Escolhe a versão do Murph.");
     if (camiseta === null) return setError("Diz se quer a camiseta.");
+    if (camiseta && !tamanho) return setError("Escolhe o tamanho da camiseta.");
 
     setStatus("sending");
     try {
       const response = await fetch("/api/murph", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, whatsapp, vinculo, bateria, versao, camiseta, site }),
+        body: JSON.stringify({ nome, whatsapp, vinculo, bateria, versao, camiseta, tamanho: camiseta ? tamanho : undefined, site }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -200,7 +204,17 @@ export function InscricaoMurphForm({
             </button>
           </div>
           {camiseta ? (
-            <p className="mt-2 text-sm text-zinc-500">Tamanho e pagamento a gente acerta com você no WhatsApp.</p>
+            <div className="mt-4">
+              <p className={legenda}>Tamanho</p>
+              <div className="grid grid-cols-4 gap-3">
+                {TAMANHOS.map((t) => (
+                  <button key={t} type="button" className={optionClass(tamanho === t)} onClick={() => setTamanho(t)}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-sm text-zinc-500">O pagamento a gente acerta com você no WhatsApp.</p>
+            </div>
           ) : null}
         </fieldset>
 
