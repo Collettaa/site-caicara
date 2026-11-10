@@ -11,6 +11,8 @@ services:
       - EVOLUTION_INSTANCE=${EVOLUTION_INSTANCE}
       - AVISO_WHATSAPP=${AVISO_WHATSAPP}
       - AULAO_LISTA_KEY=${AULAO_LISTA_KEY}
+      # Pendências: chave da rotina diária e das sessões do Claude (/api/pendencias)
+      - PENDENCIAS_KEY=${PENDENCIAS_KEY}
       # Pix do Aulão Rosa / aula avulsa (conta Asaas de sempre). URL com padrão: vazia quebraria o Aulão
       - ASAAS_API_KEY=${ASAAS_API_KEY}
       - ASAAS_URL=${ASAAS_URL:-https://api.asaas.com/v3}

@@ -6,6 +6,7 @@ import { sairAction } from "../login/actions";
 
 const LINKS = [
   { href: "/admin", label: "Pedidos" },
+  { href: "/admin/pendencias", label: "Pendências" },
   { href: "/admin/balcao", label: "Balcão" },
   { href: "/admin/produtos", label: "Produtos" },
   { href: "/admin/murph", label: "Murph" },
