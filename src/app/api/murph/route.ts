@@ -3,12 +3,15 @@ import {
   bateriaLabel,
   baterias,
   bateriasLivres,
+  criarPixMurph,
   emFila,
+  isValidCpf,
   listInscricoes,
   murph,
   normalizeWhatsapp,
   notifyInscricao,
   ocupacao,
+  pixAtivo,
   saveInscricao,
   tamanhos,
   versaoOptions,
@@ -66,6 +69,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Escolhe o tamanho da camiseta." }, { status: 400 });
   }
 
+  // De fora sem camiseta paga a participação no Pix (com camiseta, a participação vem junto).
+  // Quem já pagou e se inscreve de novo não paga outra vez.
+  const atuais = await listInscricoes();
+  const cobrarPix =
+    vinculo === "fora" && !camiseta && pixAtivo() && !atuais.some((i) => i.whatsapp === whatsapp && i.pixPago);
+  const cpf = typeof body.cpf === "string" ? body.cpf : "";
+  if (cobrarPix && !isValidCpf(cpf)) {
+    return NextResponse.json({ error: "Confere o CPF. Ele é pedido só para gerar o Pix." }, { status: 400 });
+  }
+  // Confere a vaga antes de gerar o Pix: não cobra quem não vai caber.
+  if (!bateriasLivres(atuais, whatsapp).includes(bateria)) {
+    return NextResponse.json(
+      { error: `A bateria das ${bateriaLabel(bateria)} acabou de lotar. Escolhe outra.`, livres: bateriasLivres(atuais) },
+      { status: 409 },
+    );
+  }
+  let pix = null;
+  if (cobrarPix) {
+    try {
+      pix = await criarPixMurph(nome, cpf, whatsapp);
+    } catch (error) {
+      // Sem Pix a inscrição vale do mesmo jeito: acerta no WhatsApp.
+      console.error("murph: falha ao gerar Pix", error);
+    }
+  }
+
   const inscricao: InscricaoMurph = {
     nome,
     whatsapp,
@@ -74,6 +103,7 @@ export async function POST(request: Request) {
     versao,
     camiseta,
     ...(camiseta ? { tamanho } : {}),
+    ...(pix ? { pagamentoId: pix.paymentId } : {}),
     criadoEm: new Date().toISOString(),
   };
 
@@ -102,5 +132,5 @@ export async function POST(request: Request) {
   }
 
   await notifyInscricao(inscricao, resultado.naBateria, resultado.total);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, pix });
 }

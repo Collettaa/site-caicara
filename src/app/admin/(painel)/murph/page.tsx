@@ -5,6 +5,7 @@ import { exigirAdmin } from "@/lib/admin-auth";
 import {
   bateriaLabel,
   baterias,
+  conferirPix,
   contarTamanhos,
   devePagar,
   formatWhatsapp,
@@ -35,6 +36,10 @@ export default async function MurphAdminPage({
   const sp = await searchParams;
   const q = semAcento((sp.q ?? "").trim());
   const filtro = baterias.includes(sp.b as Bateria) ? (sp.b as Bateria) : null;
+
+  // Pix de quem fechou a página antes de pagar: confere no Asaas ao abrir a aba.
+  const pendentes = (await listInscricoes()).filter((i) => i.pagamentoId && !i.pixPago);
+  if (pendentes.length) await Promise.all(pendentes.slice(0, 30).map((i) => conferirPix(i).catch(() => false)));
 
   const todos = await listInscricoes();
   const porBateria = ocupacao(todos);
@@ -148,6 +153,11 @@ export default async function MurphAdminPage({
                       <span className="inline-flex items-center gap-1 font-semibold text-zinc-800">
                         <Shirt className="h-4 w-4" /> camiseta {i.tamanho ?? "sem tamanho"}
                       </span>
+                    ) : null}
+                    {i.pixPago ? (
+                      <span className="rounded-full bg-green-100 px-2 py-0.5 font-bold text-green-800">Pix R$ {murph.inscricaoForaValor} pago</span>
+                    ) : i.pagamentoId ? (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 font-bold text-amber-800">Pix gerado, não pago</span>
                     ) : null}
                     {deve ? (
                       <span className={`rounded-full px-2 py-0.5 font-bold ${i.pago ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>

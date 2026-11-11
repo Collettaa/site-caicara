@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { CalendarDays, Clock, MapPin, Shirt } from "lucide-react";
 import { InscricaoMurphForm } from "@/components/murph/InscricaoMurphForm";
-import { bateriaLabel, baterias, bateriasLivres, listInscricoes, murph } from "@/lib/murph";
+import { bateriaLabel, baterias, bateriasLivres, listInscricoes, murph, pixAtivo } from "@/lib/murph";
 import fotoTreino from "../../../public/images/open-1.jpeg";
 
 // Vagas por bateria mudam a cada inscrição.
@@ -149,7 +149,13 @@ export default async function MurphPage() {
             </div>
           </div>
           {murph.inscricoesAbertas ? (
-            <InscricaoMurphForm livresIniciais={livres} whatsappFinal={murph.whatsappFinal} dateLabel={murph.dateLabel} />
+            <InscricaoMurphForm
+              livresIniciais={livres}
+              whatsappFinal={murph.whatsappFinal}
+              dateLabel={murph.dateLabel}
+              pixAtivo={pixAtivo()}
+              valorFora={murph.inscricaoForaValor}
+            />
           ) : (
             <div className="rounded-[2rem] border border-zinc-200 bg-white p-8 sm:p-10">
               <p className="font-heading text-3xl font-black uppercase tracking-tight sm:text-4xl">Inscrições encerradas</p>

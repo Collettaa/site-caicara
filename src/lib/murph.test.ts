@@ -51,3 +51,25 @@ describe("murph", () => {
     expect(devePagar({ vinculo: "fora", camiseta: false })).toBe(true);
   });
 });
+
+describe("murph: Pix de quem é de fora", () => {
+  it("de fora sem camiseta deve até o Pix ser confirmado; com camiseta deve a camiseta", () => {
+    expect(devePagar({ vinculo: "fora", camiseta: false })).toBe(true);
+    expect(devePagar({ vinculo: "fora", camiseta: false, pixPago: true })).toBe(false);
+    expect(devePagar({ vinculo: "fora", camiseta: true, pixPago: true })).toBe(true);
+    expect(devePagar({ vinculo: "aluno", camiseta: false })).toBe(false);
+  });
+
+  it("reinscrição mantém o Pix já pago", () => {
+    const base = { nome: "Ana", whatsapp: "5513999990000", vinculo: "fora", versao: "meio", camiseta: false, criadoEm: "x" };
+    const raw = [
+      JSON.stringify({ ...base, bateria: "06:00", pagamentoId: "pay_1" }),
+      JSON.stringify({ ajuste: "5513999990000", pixPago: true }),
+      JSON.stringify({ ...base, bateria: "08:00" }),
+    ].join("\n");
+    const [ana] = juntarInscricoes(raw);
+    expect(ana.bateria).toBe("08:00");
+    expect(ana.pixPago).toBe(true);
+    expect(ana.pagamentoId).toBe("pay_1");
+  });
+});
