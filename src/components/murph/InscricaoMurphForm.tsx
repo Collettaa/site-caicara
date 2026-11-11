@@ -11,7 +11,7 @@ const VINCULOS: { valor: Vinculo; label: string }[] = [
 ];
 
 const VERSOES: { valor: Versao; label: string; texto: string }[] = [
-  { valor: "completo", label: "Completo", texto: "1,6 km + 100 barras + 200 flexões + 300 agachamentos + 1,6 km" },
+  { valor: "completo", label: "Completo", texto: "1,6 km + 100 pull-ups + 200 push-ups + 300 air squats + 1,6 km" },
   { valor: "dupla", label: "Em dupla", texto: "Mesmo treino, repetições divididas com alguém" },
   { valor: "meio", label: "Meio Murph", texto: "Metade de tudo" },
 ];
@@ -20,12 +20,24 @@ const TAMANHOS: Tamanho[] = ["P", "M", "G", "GG"];
 
 const rotulo = (b: Bateria) => b.replace(/^0/, "").replace(":00", "h").replace(":", "h");
 
+// Opção escolhida fica preta com texto amarelo e "afunda" (perde a sombra): dá pra ver de longe o que marcou.
 const optionClass = (active: boolean) =>
-  `rounded-2xl border px-4 py-3 text-sm font-bold uppercase tracking-[0.1em] transition-colors ${
-    active ? "border-black bg-black text-white" : "border-zinc-300 bg-white text-zinc-800 hover:border-black"
+  `min-h-14 rounded-xl border-2 border-black px-4 py-3 font-heading text-lg font-semibold transition-[transform,box-shadow] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-caicara-yellow ${
+    active
+      ? "translate-x-[3px] translate-y-[3px] bg-black text-caicara-yellow shadow-none"
+      : "bg-white text-black shadow-[3px_3px_0_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
   }`;
 
-const legenda = "mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500";
+const legenda = "mb-3 font-heading text-xl font-semibold text-black";
+
+const CARTAO = "rounded-3xl border-2 border-black bg-white p-5 shadow-[6px_6px_0_#000] sm:p-8";
+
+// Botão grande com sombra preta dura; ao tocar, afunda.
+const BOTAO =
+  "inline-flex h-16 items-center justify-center gap-3 rounded-2xl border-2 border-black px-6 font-heading text-xl font-bold uppercase shadow-[4px_4px_0_#000] transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:opacity-60 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-black";
+
+const campoClass =
+  "h-14 rounded-xl border-2 border-black bg-white px-4 text-lg outline-none focus:shadow-[3px_3px_0_#000] focus-visible:ring-0";
 
 type Pix = { paymentId: string; qrCodeImage: string; copiaECola: string; invoiceUrl: string };
 
@@ -110,7 +122,7 @@ export function InscricaoMurphForm({
 
   if (status === "done" && bateria) {
     return (
-      <div className="rounded-[2rem] border border-zinc-200 bg-white p-8 text-center shadow-xl shadow-zinc-950/5">
+      <div className={`${CARTAO} text-center`}>
         <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
         <h3 className="mt-4 font-heading text-3xl font-black uppercase tracking-tight">Tá inscrito!</h3>
         <p className="mt-3 text-lg text-zinc-700">
@@ -124,7 +136,7 @@ export function InscricaoMurphForm({
           href={whatsappFinal}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#25D366] px-8 text-sm font-bold uppercase tracking-[0.14em] text-black transition-transform hover:-translate-y-0.5"
+          className={`${BOTAO} mt-6 w-full bg-[#25D366] text-black`}
         >
           <MessageCircle className="h-5 w-5" />
           Mandar MURPH
@@ -135,7 +147,7 @@ export function InscricaoMurphForm({
 
   if (livres.length === 0) {
     return (
-      <div className="rounded-[2rem] border border-zinc-200 bg-white p-8 sm:p-10">
+      <div className={CARTAO}>
         <p className="font-heading text-3xl font-black uppercase tracking-tight sm:text-4xl">Baterias lotadas</p>
         <p className="mt-4 text-lg leading-relaxed text-zinc-700">
           As 6 baterias encheram. Chama a gente no WhatsApp que, se abrir vaga, você é o primeiro a saber.
@@ -144,27 +156,23 @@ export function InscricaoMurphForm({
     );
   }
 
+  const opcao = (ativo: boolean, onClick: () => void, children: React.ReactNode, extra = "") => (
+    <button type="button" aria-pressed={ativo} className={`${optionClass(ativo)} ${extra}`} onClick={onClick}>
+      {children}
+    </button>
+  );
+  const rotuloCampo = "font-heading text-xl font-semibold text-black";
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-xl shadow-zinc-950/5 sm:p-8"
-    >
-      <div className="grid gap-6">
+    <form onSubmit={handleSubmit} className={CARTAO}>
+      <div className="grid gap-8">
         <label className="grid gap-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500">Nome</span>
-          <input
-            required
-            name="nome"
-            autoComplete="name"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            className="h-14 rounded-2xl border border-zinc-300 px-4 text-lg outline-none focus:border-black"
-            placeholder="Seu nome"
-          />
+          <span className={rotuloCampo}>Nome</span>
+          <input required name="nome" autoComplete="name" value={nome} onChange={(e) => setNome(e.target.value)} className={campoClass} placeholder="Seu nome" />
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.14em] text-zinc-500">WhatsApp</span>
+          <span className={rotuloCampo}>WhatsApp</span>
           <input
             required
             name="whatsapp"
@@ -173,7 +181,7 @@ export function InscricaoMurphForm({
             autoComplete="tel"
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
-            className="h-14 rounded-2xl border border-zinc-300 px-4 text-lg outline-none focus:border-black"
+            className={campoClass}
             placeholder="(13) 99999-9999"
           />
         </label>
@@ -182,9 +190,9 @@ export function InscricaoMurphForm({
           <legend className={legenda}>Você é</legend>
           <div className="grid gap-3 sm:grid-cols-3">
             {VINCULOS.map((v) => (
-              <button key={v.valor} type="button" className={optionClass(vinculo === v.valor)} onClick={() => setVinculo(v.valor)}>
-                {v.label}
-              </button>
+              <span key={v.valor} className="contents">
+                {opcao(vinculo === v.valor, () => setVinculo(v.valor), v.label)}
+              </span>
             ))}
           </div>
         </fieldset>
@@ -193,9 +201,9 @@ export function InscricaoMurphForm({
           <legend className={legenda}>Bateria</legend>
           <div className="grid grid-cols-3 gap-3">
             {livres.map((b) => (
-              <button key={b} type="button" className={optionClass(bateria === b)} onClick={() => setBateria(b)}>
-                {rotulo(b)}
-              </button>
+              <span key={b} className="contents">
+                {opcao(bateria === b, () => setBateria(b), rotulo(b), "text-2xl")}
+              </span>
             ))}
           </div>
         </fieldset>
@@ -204,17 +212,19 @@ export function InscricaoMurphForm({
           <legend className={legenda}>Versão</legend>
           <div className="grid gap-3">
             {VERSOES.map((v) => (
-              <button
-                key={v.valor}
-                type="button"
-                className={`${optionClass(versao === v.valor)} text-left`}
-                onClick={() => setVersao(v.valor)}
-              >
-                {v.label}
-                <span className={`mt-1 block text-xs font-medium normal-case tracking-normal ${versao === v.valor ? "text-zinc-300" : "text-zinc-500"}`}>
-                  {v.texto}
-                </span>
-              </button>
+              <span key={v.valor} className="contents">
+                {opcao(
+                  versao === v.valor,
+                  () => setVersao(v.valor),
+                  <>
+                    {v.label}
+                    <span className={`mt-0.5 block font-sans text-sm font-normal ${versao === v.valor ? "text-zinc-300" : "text-zinc-600"}`}>
+                      {v.texto}
+                    </span>
+                  </>,
+                  "text-left",
+                )}
+              </span>
             ))}
           </div>
         </fieldset>
@@ -222,40 +232,36 @@ export function InscricaoMurphForm({
         <fieldset>
           <legend className={legenda}>Quer a camiseta do Murph?</legend>
           <div className="grid grid-cols-2 gap-3">
-            <button type="button" className={optionClass(camiseta === true)} onClick={() => setCamiseta(true)}>
-              Sim
-            </button>
-            <button type="button" className={optionClass(camiseta === false)} onClick={() => setCamiseta(false)}>
-              Não
-            </button>
+            {opcao(camiseta === true, () => setCamiseta(true), "Sim")}
+            {opcao(camiseta === false, () => setCamiseta(false), "Não")}
           </div>
           {camiseta ? (
-            <div className="mt-4">
+            <div className="mt-5">
               <p className={legenda}>Tamanho</p>
               <div className="grid grid-cols-4 gap-3">
                 {TAMANHOS.map((t) => (
-                  <button key={t} type="button" className={optionClass(tamanho === t)} onClick={() => setTamanho(t)}>
-                    {t}
-                  </button>
+                  <span key={t} className="contents">
+                    {opcao(tamanho === t, () => setTamanho(t), t)}
+                  </span>
                 ))}
               </div>
-              <p className="mt-2 text-sm text-zinc-500">O pagamento a gente acerta com você no WhatsApp.</p>
+              <p className="mt-3 text-zinc-600">Com a camiseta você já está inscrito. O pagamento a gente acerta no WhatsApp.</p>
             </div>
           ) : null}
           {pagaPix ? (
-            <label className="mt-4 grid gap-2">
-              <span className={legenda}>CPF</span>
+            <label className="mt-5 grid gap-2">
+              <span className={rotuloCampo}>CPF</span>
               <input
                 name="cpf"
                 inputMode="numeric"
                 autoComplete="off"
                 value={cpf}
                 onChange={(e) => setCpf(e.target.value)}
-                className="h-14 rounded-2xl border border-zinc-300 px-4 text-lg outline-none focus:border-black"
+                className={campoClass}
                 placeholder="000.000.000-00"
               />
-              <span className="text-sm text-zinc-500">
-                De fora e sem camiseta: <strong>R$ {valorFora} no Pix</strong> para participar. O CPF é só para gerar a cobrança.
+              <span className="text-zinc-600">
+                De fora e sem camiseta: <strong className="text-black">R$ {valorFora} no Pix</strong> para participar. O CPF é só para gerar a cobrança.
               </span>
             </label>
           ) : null}
@@ -272,13 +278,13 @@ export function InscricaoMurphForm({
           aria-hidden="true"
         />
 
-        {error ? <p className="text-sm font-semibold text-red-600">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="rounded-xl border-2 border-red-600 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            {error}
+          </p>
+        ) : null}
 
-        <button
-          type="submit"
-          disabled={status === "sending"}
-          className="inline-flex h-14 items-center justify-center gap-3 whitespace-nowrap rounded-full bg-caicara-yellow px-8 text-sm font-bold uppercase tracking-[0.14em] text-black transition-transform hover:-translate-y-0.5 disabled:opacity-60"
-        >
+        <button type="submit" disabled={status === "sending"} className={`${BOTAO} bg-caicara-yellow text-black`}>
           {status === "sending" ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
           {pagaPix ? "Inscrever e gerar Pix" : "Confirmar inscrição"}
         </button>
@@ -317,7 +323,7 @@ function PixPagamento({ pix, valor, whatsappFinal, quando }: { pix: Pix; valor: 
 
   if (pago) {
     return (
-      <div className="rounded-[2rem] border border-zinc-200 bg-white p-8 text-center shadow-xl shadow-zinc-950/5">
+      <div className={`${CARTAO} text-center`}>
         <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
         <h3 className="mt-4 font-heading text-3xl font-black uppercase tracking-tight">Pix recebido!</h3>
         <p className="mt-3 text-lg text-zinc-700">Tá inscrito: {quando}. Chega um pouco antes pra aquecer.</p>
@@ -328,7 +334,7 @@ function PixPagamento({ pix, valor, whatsappFinal, quando }: { pix: Pix; valor: 
           href={whatsappFinal}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#25D366] px-8 text-sm font-bold uppercase tracking-[0.14em] text-black"
+          className={`${BOTAO} mt-6 w-full bg-[#25D366] text-black`}
         >
           <MessageCircle className="h-5 w-5" />
           Mandar MURPH
@@ -338,8 +344,8 @@ function PixPagamento({ pix, valor, whatsappFinal, quando }: { pix: Pix; valor: 
   }
 
   return (
-    <div className="rounded-[2rem] border border-zinc-200 bg-white p-6 text-center shadow-xl shadow-zinc-950/5 sm:p-8">
-      <span className="inline-flex rounded-full bg-caicara-yellow px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-black">
+    <div className={`${CARTAO} text-center`}>
+      <span className="inline-flex rounded-full border-2 border-black bg-caicara-yellow px-4 py-1 font-heading text-base font-semibold text-black">
         Inscrição feita
       </span>
       <h3 className="mt-4 font-heading text-3xl font-black uppercase tracking-tight">Falta o Pix de R$ {valor}</h3>
@@ -354,7 +360,7 @@ function PixPagamento({ pix, valor, whatsappFinal, quando }: { pix: Pix; valor: 
       <button
         type="button"
         onClick={copiar}
-        className="mt-4 inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-black px-8 text-sm font-bold uppercase tracking-[0.14em] text-white"
+        className={`${BOTAO} mt-4 w-full bg-black text-white`}
       >
         <Copy className="h-5 w-5" />
         {copiado ? "Copiado!" : "Copiar código Pix"}
