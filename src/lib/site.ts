@@ -38,6 +38,7 @@ export const navigationLinks = [
   { href: "/sobre", label: "Sobre" },
   { href: "/#planos", label: "Planos" },
   { href: "/eventos", label: "Eventos" },
+  { href: "/murph", label: "Murph" },
   ...(lojaNoMenu ? [{ href: "/loja", label: "Loja" }] : []),
   { href: "/blog", label: "Blog" },
   { href: "/contato", label: "Contato" },
