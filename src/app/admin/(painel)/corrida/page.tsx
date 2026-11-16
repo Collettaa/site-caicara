@@ -12,7 +12,7 @@ export default async function CorridaAdminPage() {
 
   return (
     <div className="container max-w-2xl py-6">
-      <h1 className="font-heading text-4xl font-black uppercase tracking-tight">Corrida no Bambu</h1>
+      <h1 className="font-heading text-4xl font-black uppercase tracking-tight">Corrida do Bambu Gastro Bar</h1>
       <p className="mt-1 text-zinc-600">
         {corridaBambu.dateLabel}, {corridaBambu.hora} · página: caicara.store/bambu
       </p>

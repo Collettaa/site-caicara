@@ -4,9 +4,9 @@ import { enviarWhatsapp } from "@/lib/whatsapp";
 
 export { formatWhatsapp, normalizeWhatsapp } from "@/lib/contato";
 
-// Corrida leve e grátis na inauguração do Bambu Bar (Gabriel, 16/11/2026).
+// Corrida leve e grátis na inauguração do Bambu Gastro Bar (Gabriel, 16/11/2026).
 export const corridaBambu = {
-  title: "Corrida de inauguração do Bambu Bar",
+  title: "Corrida de inauguração do Bambu Gastro Bar",
   date: "2026-11-27",
   dateLabel: "Sexta, 27/11",
   hora: "20h",
@@ -64,6 +64,6 @@ export async function notifyInscricao(inscricao: InscricaoBambu, total: number) 
   if (!AVISO_WHATSAPP) return;
   await enviarWhatsapp(
     AVISO_WHATSAPP,
-    [`🏃 Nova inscrição na corrida do Bambu`, inscricao.nome, `wa.me/${inscricao.whatsapp}`, `Total: ${total}`].join("\n"),
+    [`🏃 Nova inscrição na corrida do Bambu Gastro Bar`, inscricao.nome, `wa.me/${inscricao.whatsapp}`, `Total: ${total}`].join("\n"),
   );
 }
