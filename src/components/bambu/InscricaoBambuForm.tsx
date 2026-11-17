@@ -14,7 +14,8 @@ const BOTAO =
 const CAIXA = "rounded-3xl border-2 border-[#09300b] bg-[#fdf3c4] p-5 text-[#09300b] shadow-[6px_6px_0_#09300b]";
 
 const TAMANHOS = ["P", "M", "G", "GG"] as const;
-type Pix = { paymentId: string; qrCodeImage: string; copiaECola: string; invoiceUrl: string };
+type Forma = "pix" | "cartao";
+type Cobranca = { forma: Forma; paymentId: string; invoiceUrl: string; qrCodeImage?: string; copiaECola?: string };
 
 type Props = {
   quando: string;
@@ -27,10 +28,11 @@ export function InscricaoBambuForm({ quando, camiseta }: Props) {
   const [whatsapp, setWhatsapp] = useState("");
   const [querCamiseta, setQuerCamiseta] = useState(false);
   const [tamanho, setTamanho] = useState<string>("");
+  const [forma, setForma] = useState<Forma>("pix");
   const [cpf, setCpf] = useState("");
   const [site, setSite] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
-  const [pix, setPix] = useState<Pix | null>(null);
+  const [cobranca, setCobranca] = useState<Cobranca | null>(null);
   const [error, setError] = useState("");
 
   const comCamiseta = Boolean(camiseta && querCamiseta);
@@ -47,7 +49,14 @@ export function InscricaoBambuForm({ quando, camiseta }: Props) {
       const response = await fetch("/api/corrida-bambu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, whatsapp, site, camiseta: comCamiseta ? tamanho : undefined, cpf: comCamiseta ? cpf : undefined }),
+        body: JSON.stringify({
+          nome,
+          whatsapp,
+          site,
+          camiseta: comCamiseta ? tamanho : undefined,
+          forma: comCamiseta ? forma : undefined,
+          cpf: comCamiseta ? cpf : undefined,
+        }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -55,7 +64,7 @@ export function InscricaoBambuForm({ quando, camiseta }: Props) {
         setStatus("idle");
         return;
       }
-      setPix(data.pix ?? null);
+      setCobranca(data.cobranca ?? null);
       setStatus("done");
     } catch {
       setError("Sem conexão. Tenta de novo.");
@@ -63,8 +72,8 @@ export function InscricaoBambuForm({ quando, camiseta }: Props) {
     }
   }
 
-  if (status === "done" && pix && camiseta) {
-    return <PixCamiseta pix={pix} valor={camiseta.valor} tamanho={tamanho} quando={quando} />;
+  if (status === "done" && cobranca && camiseta) {
+    return <PagarCamiseta cobranca={cobranca} valor={camiseta.valor} tamanho={tamanho} quando={quando} />;
   }
 
   if (status === "done") {
@@ -112,12 +121,19 @@ export function InscricaoBambuForm({ quando, camiseta }: Props) {
           {querCamiseta ? (
             <>
               <p className="text-base">
-                <strong>R$ {camiseta.valor} no Pix</strong>, pedido até {camiseta.pedidoAte}. Retira no dia da corrida.
+                <strong>R$ {camiseta.valor}</strong>, no Pix ou no cartão (1x). Pedido até {camiseta.pedidoAte}. Retira no dia da corrida.
               </p>
               <div className="grid grid-cols-4 gap-2" role="group" aria-label="Tamanho">
                 {TAMANHOS.map((t) => (
                   <button key={t} type="button" aria-pressed={tamanho === t} onClick={() => setTamanho(t)} className={`${OPCAO} ${tamanho === t ? OPCAO_ON : OPCAO_OFF}`}>
                     {t}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-3" role="group" aria-label="Pagamento">
+                {(["pix", "cartao"] as const).map((f) => (
+                  <button key={f} type="button" aria-pressed={forma === f} onClick={() => setForma(f)} className={`${OPCAO} ${forma === f ? OPCAO_ON : OPCAO_OFF}`}>
+                    {f === "pix" ? "Pix" : "Cartão 1x"}
                   </button>
                 ))}
               </div>
@@ -130,7 +146,7 @@ export function InscricaoBambuForm({ quando, camiseta }: Props) {
                   value={cpf}
                   onChange={(e) => setCpf(e.target.value)}
                   className={CAMPO}
-                  placeholder="Só pra gerar o Pix"
+                  placeholder="Só pra gerar a cobrança"
                 />
               </label>
             </>
@@ -146,13 +162,13 @@ export function InscricaoBambuForm({ quando, camiseta }: Props) {
       ) : null}
       <button type="submit" disabled={status === "sending"} className={BOTAO}>
         {status === "sending" ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-        {comCamiseta ? "Correr e gerar Pix" : "Quero correr"}
+        {comCamiseta ? (forma === "pix" ? "Correr e gerar Pix" : "Correr e pagar") : "Quero correr"}
       </button>
     </form>
   );
 }
 
-function PixCamiseta({ pix, valor, tamanho, quando }: { pix: Pix; valor: number; tamanho: string; quando: string }) {
+function PagarCamiseta({ cobranca, valor, tamanho, quando }: { cobranca: Cobranca; valor: number; tamanho: string; quando: string }) {
   const [pago, setPago] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
@@ -160,7 +176,7 @@ function PixCamiseta({ pix, valor, tamanho, quando }: { pix: Pix; valor: number;
     if (pago) return;
     const timer = setInterval(async () => {
       try {
-        const response = await fetch(`/api/corrida-bambu/pix?id=${encodeURIComponent(pix.paymentId)}`);
+        const response = await fetch(`/api/corrida-bambu/pix?id=${encodeURIComponent(cobranca.paymentId)}`);
         const data = await response.json();
         if (data.pago) setPago(true);
       } catch {
@@ -168,11 +184,11 @@ function PixCamiseta({ pix, valor, tamanho, quando }: { pix: Pix; valor: number;
       }
     }, 5000);
     return () => clearInterval(timer);
-  }, [pago, pix.paymentId]);
+  }, [pago, cobranca.paymentId]);
 
   async function copiar() {
     try {
-      await navigator.clipboard.writeText(pix.copiaECola);
+      await navigator.clipboard.writeText(cobranca.copiaECola ?? "");
       setCopiado(true);
     } catch {
       // sem permissão: o código continua visível para copiar na mão
@@ -183,10 +199,25 @@ function PixCamiseta({ pix, valor, tamanho, quando }: { pix: Pix; valor: number;
     return (
       <div className={`${CAIXA} p-6 text-center`}>
         <CheckCircle2 className="mx-auto h-12 w-12" />
-        <p className="mt-3 font-heading text-3xl font-bold uppercase">Pix recebido!</p>
+        <p className="mt-3 font-heading text-3xl font-bold uppercase">Pagamento recebido!</p>
         <p className="mt-2 text-lg">
           Camiseta {tamanho} garantida. {quando}: corre com ela.
         </p>
+      </div>
+    );
+  }
+
+  if (cobranca.forma === "cartao") {
+    return (
+      <div className={`${CAIXA} p-6 text-center`}>
+        <p className="font-heading text-3xl font-bold uppercase">Tá inscrito!</p>
+        <p className="mt-2 text-lg">
+          Falta pagar <strong>R$ {valor}</strong> da camiseta {tamanho} no cartão, em 1x.
+        </p>
+        <a href={cobranca.invoiceUrl} target="_blank" rel="noopener noreferrer" className={`${BOTAO} mt-5`}>
+          Pagar com cartão
+        </a>
+        <p className="mt-4 text-sm">Abre a página segura do Asaas. Depois volta aqui: a tela atualiza sozinha.</p>
       </div>
     );
   }
@@ -198,8 +229,8 @@ function PixCamiseta({ pix, valor, tamanho, quando }: { pix: Pix; valor: number;
         Falta o Pix de <strong>R$ {valor}</strong> da camiseta {tamanho}.
       </p>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`data:image/png;base64,${pix.qrCodeImage}`} alt="QR Code Pix da camiseta" className="mx-auto mt-5 h-56 w-56 rounded-xl border-2 border-[#09300b] bg-white p-2" />
-      <div className="mt-5 break-all rounded-xl bg-white p-3 text-left text-xs">{pix.copiaECola}</div>
+      <img src={`data:image/png;base64,${cobranca.qrCodeImage}`} alt="QR Code Pix da camiseta" className="mx-auto mt-5 h-56 w-56 rounded-xl border-2 border-[#09300b] bg-white p-2" />
+      <div className="mt-5 break-all rounded-xl bg-white p-3 text-left text-xs">{cobranca.copiaECola}</div>
       <button type="button" onClick={copiar} className={`${BOTAO} mt-4`}>
         {copiado ? "Copiado!" : "Copiar código Pix"}
       </button>

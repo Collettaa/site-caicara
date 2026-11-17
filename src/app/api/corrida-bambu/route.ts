@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import {
   camisetaAberta,
   corridaBambu,
-  criarPixCamiseta,
+  criarCobrancaCamiseta,
+  formas,
   emFila,
   isValidCpf,
   listInscricoes,
@@ -11,7 +12,8 @@ import {
   saveInscricao,
   tamanhos,
   type InscricaoBambu,
-  type PixBambu,
+  type CobrancaBambu,
+  type Forma,
   type Tamanho,
 } from "@/lib/corrida-bambu";
 
@@ -38,18 +40,20 @@ export async function POST(request: Request) {
     if (!camisetaAberta()) return NextResponse.json({ error: "A camiseta não está à venda agora." }, { status: 400 });
     if (!tamanhos.includes(camiseta)) return NextResponse.json({ error: "Escolhe o tamanho da camiseta." }, { status: 400 });
   }
+  const forma = (body.forma ?? "pix") as Forma;
+  if (camiseta && !formas.includes(forma)) return NextResponse.json({ error: "Escolhe Pix ou cartão." }, { status: 400 });
   const cpf = typeof body.cpf === "string" ? body.cpf : "";
   if (camiseta && !isValidCpf(cpf)) {
-    return NextResponse.json({ error: "Confere o CPF. Ele é pedido só para gerar o Pix." }, { status: 400 });
+    return NextResponse.json({ error: "Confere o CPF. Ele é pedido só para gerar a cobrança." }, { status: 400 });
   }
 
-  let pix: PixBambu | undefined;
+  let cobranca: CobrancaBambu | undefined;
   if (camiseta) {
     try {
-      pix = await criarPixCamiseta(nome, cpf, whatsapp, camiseta);
+      cobranca = await criarCobrancaCamiseta(nome, cpf, whatsapp, camiseta, forma);
     } catch (error) {
-      console.error("corrida-bambu: falha ao gerar Pix", error);
-      return NextResponse.json({ error: "Não deu pra gerar o Pix agora. Tenta de novo." }, { status: 502 });
+      console.error("corrida-bambu: falha ao gerar cobrança", error);
+      return NextResponse.json({ error: "Não deu pra gerar o pagamento agora. Tenta de novo." }, { status: 502 });
     }
   }
 
@@ -57,7 +61,7 @@ export async function POST(request: Request) {
     nome,
     whatsapp,
     criadoEm: new Date().toISOString(),
-    ...(camiseta ? { camiseta, pagamentoId: pix?.paymentId } : {}),
+    ...(camiseta ? { camiseta, forma, pagamentoId: cobranca?.paymentId } : {}),
   };
   let total: number;
   try {
@@ -70,5 +74,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Não deu pra salvar agora. Tenta de novo." }, { status: 500 });
   }
   await notifyInscricao(inscricao, total);
-  return NextResponse.json({ ok: true, pix: pix ?? null });
+  return NextResponse.json({ ok: true, cobranca: cobranca ?? null });
 }

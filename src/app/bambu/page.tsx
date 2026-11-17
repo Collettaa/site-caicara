@@ -112,7 +112,7 @@ export default function BambuPage() {
             <Image src={fotoCamiseta} alt="Camiseta da corrida, frente e costas" sizes="(max-width: 672px) 100vw, 672px" className="h-auto w-full" />
           </div>
           <p className="mt-4 font-heading text-2xl font-semibold text-[#f0c94c]">
-            {vendendo ? `R$ ${valor} no Pix. Pede junto com a inscrição.` : "Venda abre em breve, aqui nesta página."}
+            {vendendo ? `R$ ${valor}, no Pix ou no cartão (1x). Pede junto com a inscrição.` : "Venda abre em breve, aqui nesta página."}
           </p>
         </div>
       </section>

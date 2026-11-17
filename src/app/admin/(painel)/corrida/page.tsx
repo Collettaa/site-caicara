@@ -28,7 +28,7 @@ export default async function CorridaAdminPage() {
       <div className="mt-3 rounded-3xl border border-zinc-200 bg-white p-4">
         <p className="font-bold">
           Camisetas pagas: {totalPagas}
-          {aguardando ? <span className="font-normal text-zinc-600"> · {aguardando} aguardando Pix</span> : null}
+          {aguardando ? <span className="font-normal text-zinc-600"> · {aguardando} aguardando pagamento</span> : null}
         </p>
         <p className="mt-1 text-sm text-zinc-600">{tamanhos.map((t) => `${t}: ${pagas[t]}`).join(" · ")} · pedido até {corridaBambu.camiseta.pedidoAteLabel}</p>
       </div>
@@ -40,7 +40,7 @@ export default async function CorridaAdminPage() {
               <p className="text-sm text-zinc-600">{formatWhatsapp(i.whatsapp)}</p>
               {i.camiseta ? (
                 <p className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${i.pixPago ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
-                  Camiseta {i.camiseta} · {i.pixPago ? "paga" : "Pix pendente"}
+                  Camiseta {i.camiseta} · {i.forma === "cartao" ? "cartão" : "Pix"} · {i.pixPago ? "paga" : "pendente"}
                 </p>
               ) : null}
             </div>

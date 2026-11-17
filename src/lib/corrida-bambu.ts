@@ -36,8 +36,9 @@ export type InscricaoBambu = {
   whatsapp: string;
   criadoEm: string;
   camiseta?: Tamanho; // pediu camiseta
-  pagamentoId?: string; // Pix da camiseta, conta Asaas ASAAS_*
-  pixPago?: boolean; // Asaas confirmou o Pix
+  forma?: Forma; // como escolheu pagar a camiseta
+  pagamentoId?: string; // cobrança da camiseta, conta Asaas ASAAS_*
+  pixPago?: boolean; // Asaas confirmou o pagamento (Pix ou cartão; nome mantido pelos dados já gravados)
 };
 
 type Ajuste = { ajuste: string; pixPago?: boolean };
@@ -91,7 +92,7 @@ export function juntarInscricoes(raw: string): InscricaoBambu[] {
       porNumero.delete(item.whatsapp);
       const pago =
         antes?.pixPago && !item.camiseta
-          ? { camiseta: antes.camiseta, pagamentoId: antes.pagamentoId, pixPago: true }
+          ? { camiseta: antes.camiseta, forma: antes.forma, pagamentoId: antes.pagamentoId, pixPago: true }
           : {};
       porNumero.set(item.whatsapp, { ...item, ...pago });
     } catch {
@@ -131,7 +132,7 @@ export async function notifyInscricao(inscricao: InscricaoBambu, total: number) 
       `🏃 Nova inscrição na corrida do Bambu Gastro Bar`,
       inscricao.nome,
       `wa.me/${inscricao.whatsapp}`,
-      inscricao.camiseta ? `Camiseta ${inscricao.camiseta} (Pix gerado, aguardando)` : null,
+      inscricao.camiseta ? `Camiseta ${inscricao.camiseta} (${inscricao.forma === "cartao" ? "cartão" : "Pix"} gerado, aguardando)` : null,
       `Total: ${total}`,
     ]
       .filter(Boolean)
@@ -139,15 +140,19 @@ export async function notifyInscricao(inscricao: InscricaoBambu, total: number) 
   );
 }
 
-// ---- Pix da camiseta (mesma conta Asaas do Aulão e do Murph: ASAAS_*) ----
+// ---- Cobrança da camiseta, Pix ou cartão 1x (mesma conta Asaas do Aulão e do Murph: ASAAS_*) ----
 
 function asaas<T>(pathname: string, init?: RequestInit): Promise<T> {
   return asaasFetch<T>({ url: process.env.ASAAS_URL ?? ASAAS_URL_PADRAO, apiKey: process.env.ASAAS_API_KEY ?? "" }, pathname, init);
 }
 
-export type PixBambu = { paymentId: string; qrCodeImage: string; copiaECola: string; invoiceUrl: string };
+export const formas = ["pix", "cartao"] as const;
+export type Forma = (typeof formas)[number];
 
-export async function criarPixCamiseta(nome: string, cpf: string, whatsapp: string, tamanho: Tamanho): Promise<PixBambu> {
+/** Cobrança da camiseta. Pix vem com QR Code; cartão (1x) paga na página do Asaas (invoiceUrl). */
+export type CobrancaBambu = { forma: Forma; paymentId: string; invoiceUrl: string; qrCodeImage?: string; copiaECola?: string };
+
+export async function criarCobrancaCamiseta(nome: string, cpf: string, whatsapp: string, tamanho: Tamanho, forma: Forma): Promise<CobrancaBambu> {
   const valor = corridaBambu.camiseta.valor;
   if (valor === null) throw new Error("camiseta sem preço");
   const customer = await asaas<{ id: string }>("/customers", {
@@ -158,15 +163,16 @@ export async function criarPixCamiseta(nome: string, cpf: string, whatsapp: stri
     method: "POST",
     body: JSON.stringify({
       customer: customer.id,
-      billingType: "PIX",
+      billingType: forma === "pix" ? "PIX" : "CREDIT_CARD", // cartão sem parcelas = 1x
       value: valor,
       dueDate: corridaBambu.camiseta.pedidoAte,
       description: `Camiseta ${tamanho} · ${corridaBambu.title} · Caiçara Fit`,
       externalReference: `bambu:${whatsapp}`,
     }),
   });
+  if (forma === "cartao") return { forma, paymentId: payment.id, invoiceUrl: payment.invoiceUrl };
   const pix = await asaas<{ encodedImage: string; payload: string }>(`/payments/${payment.id}/pixQrCode`);
-  return { paymentId: payment.id, qrCodeImage: pix.encodedImage, copiaECola: pix.payload, invoiceUrl: payment.invoiceUrl };
+  return { forma, paymentId: payment.id, qrCodeImage: pix.encodedImage, copiaECola: pix.payload, invoiceUrl: payment.invoiceUrl };
 }
 
 const PAGO = new Set(["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"]);
