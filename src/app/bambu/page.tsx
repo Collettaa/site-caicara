@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { InscricaoBambuForm } from "@/components/bambu/InscricaoBambuForm";
-import { corridaBambu } from "@/lib/corrida-bambu";
+import { camisetaAberta, corridaBambu } from "@/lib/corrida-bambu";
+import fotoCamiseta from "../../../public/images/bambu/camiseta.jpg";
 import logoBambu from "../../../public/images/bambu/logo-bambu-gastro.png";
 import fotoNoite from "../../../public/images/bambu/noite.jpg";
 import logoCaicara from "../../../public/images/logo.png";
+
+// A venda da camiseta depende do preço, do Pix e da data: confere a cada visita.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Corrida de inauguração do Bambu Gastro Bar | Inscrição grátis",
@@ -28,9 +32,11 @@ const PULSEIRA = ["Grátis", "Sexta 27/11", "20h", "Itararé"];
 export default function BambuPage() {
   const { dateLabel, hora, local, percurso } = corridaBambu;
   const quando = `${dateLabel}, às ${hora}`;
+  const { valor, pedidoAteLabel } = corridaBambu.camiseta;
+  const vendendo = camisetaAberta() && valor !== null;
 
   return (
-    <div className="overflow-x-hidden bg-[#09300b] text-[#fdf3c4]">
+    <div className="overflow-x-clip bg-[#09300b] text-[#fdf3c4]">
       {/* Abertura: o logo do bar manda, o nome do evento vem logo abaixo. */}
       <section className="px-4 pb-14 pt-24 sm:pt-28">
         <div className="mx-auto max-w-2xl">
@@ -95,14 +101,30 @@ export default function BambuPage() {
         </div>
       </section>
 
+      {/* A camiseta do evento. */}
+      <section className="px-4 pb-16">
+        <div className="mx-auto max-w-2xl">
+          <h2 className="font-heading text-4xl font-bold uppercase leading-none">Tem camiseta</h2>
+          <p className="mt-3 max-w-md text-lg text-[#fdf3c4]/85">
+            Branca, com o Bambu na frente e a orla de São Vicente embaixo. P, M, G e GG, pedido até {pedidoAteLabel}.
+          </p>
+          <div className="relative mt-6 overflow-hidden rounded-3xl border-4 border-[#f0c94c]">
+            <Image src={fotoCamiseta} alt="Camiseta da corrida, frente e costas" sizes="(max-width: 672px) 100vw, 672px" className="h-auto w-full" />
+          </div>
+          <p className="mt-4 font-heading text-2xl font-semibold text-[#f0c94c]">
+            {vendendo ? `R$ ${valor} no Pix. Pede junto com a inscrição.` : "Venda abre em breve, aqui nesta página."}
+          </p>
+        </div>
+      </section>
+
       {/* Inscrição. */}
       <section id="inscricao" className="scroll-mt-20 bg-[#8dbb55] px-4 py-14 text-[#09300b]">
         <div className="mx-auto max-w-xl">
           <h2 className="font-heading text-4xl font-bold uppercase">Inscrição</h2>
-          <p className="mt-2 text-lg">Nome e WhatsApp. Só isso.</p>
+          <p className="mt-2 text-lg">{vendendo ? "Nome e WhatsApp. A camiseta é opcional." : "Nome e WhatsApp. Só isso."}</p>
           <div className="mt-6">
             {corridaBambu.inscricoesAbertas ? (
-              <InscricaoBambuForm quando={quando} />
+              <InscricaoBambuForm quando={quando} camiseta={vendendo ? { valor, pedidoAte: pedidoAteLabel } : null} />
             ) : (
               <p className="rounded-3xl border-2 border-[#09300b] bg-[#fdf3c4] p-6 font-heading text-2xl font-bold uppercase">
                 Inscrições encerradas

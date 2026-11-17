@@ -15,6 +15,7 @@ services:
       - PENDENCIAS_KEY=${PENDENCIAS_KEY}
       # Pix do Aulão Rosa / aula avulsa (conta Asaas de sempre). URL com padrão: vazia quebraria o Aulão
       - ASAAS_API_KEY=${ASAAS_API_KEY}
+      - BAMBU_CAMISETA_VALOR=${BAMBU_CAMISETA_VALOR:-}
       - ASAAS_URL=${ASAAS_URL:-https://api.asaas.com/v3}
       # Loja: conta Asaas própria (sandbox no teste, produção depois)
       - LOJA_ASAAS_API_KEY=${LOJA_ASAAS_API_KEY}
