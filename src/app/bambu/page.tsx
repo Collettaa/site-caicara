@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { InscricaoBambuForm } from "@/components/bambu/InscricaoBambuForm";
-import { camisetaAberta, corridaBambu, disponiveis, listInscricoes, tamanhos } from "@/lib/corrida-bambu";
+import { camisetaAberta, corridaBambu, disponiveis, listPedidos, tamanhos } from "@/lib/corrida-bambu";
 import fotoCamiseta from "../../../public/images/bambu/camiseta.jpg";
 import logoBambu from "../../../public/images/bambu/logo-bambu-gastro.png";
 import fotoNoite from "../../../public/images/bambu/noite.jpg";
@@ -45,9 +45,9 @@ const PULSEIRA = ["Grátis", "Sexta 27/11", "20h", "Quiosque 47B", "Pagode na ch
 export default async function BambuPage() {
   const { dateLabel, hora, local, mapa, chegada, percurso } = corridaBambu;
   const quando = `${dateLabel}, às ${hora}`;
-  const { valor, pedidoAteLabel, tecido, brinde, medidas } = corridaBambu.camiseta;
+  const { valor, pedidoAteLabel, tecido, brinde, medidas, maxPorPedido } = corridaBambu.camiseta;
   const vendendo = camisetaAberta() && valor !== null;
-  const livres = disponiveis(await listInscricoes());
+  const livres = disponiveis(await listPedidos());
 
   return (
     <div className="overflow-x-clip bg-[#09300b] text-[#fdf3c4]">
@@ -130,8 +130,8 @@ export default async function BambuPage() {
         <div className="mx-auto max-w-2xl">
           <h2 className="font-heading text-4xl font-bold uppercase leading-none">Tem camiseta</h2>
           <p className="mt-3 max-w-md text-lg text-[#fdf3c4]/85">
-            {tecido}, branca, com o Bambu na frente e a orla de São Vicente embaixo. Pedido até {pedidoAteLabel}, retira no
-            dia da corrida.
+            {tecido}, branca, com o Bambu na frente e a orla de São Vicente embaixo. Dá pra comprar mais de uma, e não
+            precisa correr pra comprar. Pedido até {pedidoAteLabel}, retira no dia da corrida.
           </p>
           <div className="mt-6 overflow-hidden rounded-3xl border-4 border-[#f0c94c]">
             <Image src={fotoCamiseta} alt="Camiseta da corrida, frente e costas, com os apoiadores" sizes="(max-width: 672px) 100vw, 672px" className="h-auto w-full" />
@@ -164,10 +164,10 @@ export default async function BambuPage() {
           </div>
 
           <p className="mt-8 font-heading text-2xl font-semibold text-[#f0c94c]">
-            {vendendo ? `R$ ${valor}, no Pix ou no cartão (1x). Pede junto com a inscrição.` : "Venda abre em breve, aqui nesta página."}
+            {vendendo ? `R$ ${valor} cada, no Pix ou no cartão (1x). Pede aqui embaixo.` : "Venda abre em breve, aqui nesta página."}
           </p>
           {brinde ? (
-            <p className="mt-2 font-[family-name:var(--font-marker)] text-xl text-[#8dbb55]">quem compra a camiseta ganha {brinde}</p>
+            <p className="mt-2 font-[family-name:var(--font-marker)] text-xl text-[#8dbb55]">cada camiseta vale {brinde}</p>
           ) : null}
         </div>
       </section>
@@ -175,11 +175,15 @@ export default async function BambuPage() {
       {/* Inscrição. */}
       <section id="inscricao" className="scroll-mt-20 bg-[#8dbb55] px-4 py-14 text-[#09300b]">
         <div className="mx-auto max-w-xl">
-          <h2 className="font-heading text-4xl font-bold uppercase">Inscrição</h2>
-          <p className="mt-2 text-lg">{vendendo ? "Nome e WhatsApp. A camiseta é opcional." : "Nome e WhatsApp. Só isso."}</p>
+          <h2 className="font-heading text-4xl font-bold uppercase">{vendendo ? "Inscrição e camiseta" : "Inscrição"}</h2>
+          <p className="mt-2 text-lg">{vendendo ? "Corre de graça, compra a camiseta, ou os dois." : "Nome e WhatsApp. Só isso."}</p>
           <div className="mt-6">
-            {corridaBambu.inscricoesAbertas ? (
-              <InscricaoBambuForm quando={quando} camiseta={vendendo ? { valor, pedidoAte: pedidoAteLabel, livres } : null} />
+            {corridaBambu.inscricoesAbertas || vendendo ? (
+              <InscricaoBambuForm
+                quando={quando}
+                inscricoesAbertas={corridaBambu.inscricoesAbertas}
+                camiseta={vendendo ? { valor, pedidoAte: pedidoAteLabel, brinde, max: maxPorPedido, livres } : null}
+              />
             ) : (
               <p className="rounded-3xl border-2 border-[#09300b] bg-[#fdf3c4] p-6 font-heading text-2xl font-bold uppercase">
                 Inscrições encerradas

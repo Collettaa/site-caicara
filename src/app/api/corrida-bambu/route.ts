@@ -2,28 +2,32 @@ import { NextResponse } from "next/server";
 import {
   camisetaAberta,
   corridaBambu,
-  criarCobrancaCamiseta,
+  criarCobranca,
+  descreverItens,
   disponiveis,
-  formas,
   emFila,
+  formas,
   isValidCpf,
+  limparItens,
   listInscricoes,
+  listPedidos,
   normalizeWhatsapp,
-  notifyInscricao,
+  notifyGabriel,
+  quantidade,
+  salvarPedido,
   saveInscricao,
   tamanhos,
-  type InscricaoBambu,
   type CobrancaBambu,
   type Forma,
-  type Tamanho,
 } from "@/lib/corrida-bambu";
 
 export const runtime = "nodejs";
 
+/**
+ * Um envio pode inscrever na corrida, comprar camisetas, ou os dois.
+ * Body: { nome, whatsapp, corre: boolean, itens?: {P,M,G,GG}, forma?: "pix"|"cartao", cpf?, site? }
+ */
 export async function POST(request: Request) {
-  if (!corridaBambu.inscricoesAbertas) {
-    return NextResponse.json({ error: "Inscrições encerradas." }, { status: 410 });
-  }
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
 
@@ -35,53 +39,59 @@ export async function POST(request: Request) {
   if (nome.length < 2) return NextResponse.json({ error: "Escreve seu nome." }, { status: 400 });
   if (!whatsapp) return NextResponse.json({ error: "Confere o WhatsApp com DDD." }, { status: 400 });
 
-  // Camiseta: só quando está à venda; quem não pede segue inscrito de graça.
-  const camiseta = typeof body.camiseta === "string" && body.camiseta ? (body.camiseta as Tamanho) : undefined;
-  if (camiseta) {
-    if (!camisetaAberta()) return NextResponse.json({ error: "A camiseta não está à venda agora." }, { status: 400 });
-    if (!tamanhos.includes(camiseta)) return NextResponse.json({ error: "Escolhe o tamanho da camiseta." }, { status: 400 });
-  }
-  const forma = (body.forma ?? "pix") as Forma;
-  if (camiseta && !formas.includes(forma)) return NextResponse.json({ error: "Escolhe Pix ou cartão." }, { status: 400 });
-  const cpf = typeof body.cpf === "string" ? body.cpf : "";
-  if (camiseta && !isValidCpf(cpf)) {
-    return NextResponse.json({ error: "Confere o CPF. Ele é pedido só para gerar a cobrança." }, { status: 400 });
-  }
-
-  // Mesmo WhatsApp pedindo de novo não conta contra ele mesmo.
-  if (camiseta) {
-    const outros = (await listInscricoes()).filter((i) => i.whatsapp !== whatsapp);
-    if (disponiveis(outros)[camiseta] < 1) {
-      return NextResponse.json({ error: `Acabou a camiseta ${camiseta}. Escolhe outro tamanho.` }, { status: 409 });
-    }
-  }
+  const corre = body.corre !== false;
+  const itens = limparItens(body.itens);
+  const qtd = quantidade(itens);
+  if (!corre && qtd === 0) return NextResponse.json({ error: "Escolhe correr, a camiseta ou os dois." }, { status: 400 });
+  if (corre && !corridaBambu.inscricoesAbertas) return NextResponse.json({ error: "Inscrições encerradas." }, { status: 410 });
 
   let cobranca: CobrancaBambu | undefined;
-  if (camiseta) {
+  if (qtd > 0) {
+    if (!camisetaAberta()) return NextResponse.json({ error: "A camiseta não está à venda agora." }, { status: 400 });
+    if (qtd > corridaBambu.camiseta.maxPorPedido) {
+      return NextResponse.json({ error: `Até ${corridaBambu.camiseta.maxPorPedido} camisetas por pedido.` }, { status: 400 });
+    }
+    const forma = (body.forma ?? "pix") as Forma;
+    if (!formas.includes(forma)) return NextResponse.json({ error: "Escolhe Pix ou cartão." }, { status: 400 });
+    const cpf = typeof body.cpf === "string" ? body.cpf : "";
+    if (!isValidCpf(cpf)) return NextResponse.json({ error: "Confere o CPF. Ele é pedido só para gerar a cobrança." }, { status: 400 });
+
+    const livres = disponiveis(await listPedidos());
+    const faltou = tamanhos.find((t) => (itens[t] ?? 0) > livres[t]);
+    if (faltou) {
+      const msg = livres[faltou] === 0 ? `Acabou a camiseta ${faltou}.` : `Só tem ${livres[faltou]} camiseta${livres[faltou] > 1 ? "s" : ""} ${faltou}.`;
+      return NextResponse.json({ error: `${msg} Ajusta o pedido.` }, { status: 409 });
+    }
+
     try {
-      cobranca = await criarCobrancaCamiseta(nome, cpf, whatsapp, camiseta, forma);
+      cobranca = await criarCobranca(nome, cpf, whatsapp, itens, forma);
     } catch (error) {
       console.error("corrida-bambu: falha ao gerar cobrança", error);
       return NextResponse.json({ error: "Não deu pra gerar o pagamento agora. Tenta de novo." }, { status: 502 });
     }
   }
 
-  const inscricao: InscricaoBambu = {
-    nome,
-    whatsapp,
-    criadoEm: new Date().toISOString(),
-    ...(camiseta ? { camiseta, forma, pagamentoId: cobranca?.paymentId } : {}),
-  };
-  let total: number;
+  const agora = new Date().toISOString();
+  let total = 0;
   try {
     total = await emFila(async () => {
-      await saveInscricao(inscricao);
+      if (cobranca) {
+        await salvarPedido({ id: cobranca.paymentId, nome, whatsapp, itens, total: cobranca.total, forma: cobranca.forma, criadoEm: agora });
+      }
+      if (corre) await saveInscricao({ nome, whatsapp, criadoEm: agora });
       return (await listInscricoes()).length;
     });
   } catch (error) {
     console.error("corrida-bambu: falha ao salvar", error);
     return NextResponse.json({ error: "Não deu pra salvar agora. Tenta de novo." }, { status: 500 });
   }
-  await notifyInscricao(inscricao, total);
-  return NextResponse.json({ ok: true, cobranca: cobranca ?? null });
+
+  await notifyGabriel([
+    corre ? "🏃 Nova inscrição na corrida do Bambu Gastro Bar" : "👕 Pedido de camiseta da corrida do Bambu (sem inscrição)",
+    nome,
+    `wa.me/${whatsapp}`,
+    cobranca ? `Camisetas: ${descreverItens(itens)} · R$ ${cobranca.total} no ${cobranca.forma === "cartao" ? "cartão" : "Pix"} (aguardando)` : null,
+    corre ? `Inscritos: ${total}` : null,
+  ]);
+  return NextResponse.json({ ok: true, inscrito: corre, cobranca: cobranca ?? null });
 }

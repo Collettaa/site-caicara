@@ -1,51 +1,63 @@
 import { describe, expect, it } from "vitest";
-import { contarCamisetas, disponiveis, juntarInscricoes } from "@/lib/corrida-bambu";
+import { contarCamisetas, descreverItens, disponiveis, juntarInscricoes, juntarPedidos, limparItens, type PedidoCamiseta } from "@/lib/corrida-bambu";
 
 const linha = (o: object) => JSON.stringify(o);
+const pedido = (o: Partial<PedidoCamiseta>): PedidoCamiseta => ({
+  id: "p",
+  nome: "a",
+  whatsapp: "1",
+  itens: {},
+  total: 0,
+  forma: "pix",
+  criadoEm: "2026-11-19T12:00:00Z",
+  ...o,
+});
 
 describe("juntarInscricoes", () => {
-  it("ajuste marca o Pix como pago", () => {
-    const raw = [linha({ nome: "Ana", whatsapp: "5513", criadoEm: "x", camiseta: "M", pagamentoId: "pay_1" }), linha({ ajuste: "5513", pixPago: true })].join("\n");
-    expect(juntarInscricoes(raw)).toEqual([{ nome: "Ana", whatsapp: "5513", criadoEm: "x", camiseta: "M", pagamentoId: "pay_1", pixPago: true }]);
+  it("mesmo WhatsApp vale a última e ignora ajuste antigo", () => {
+    const raw = [linha({ nome: "Ana", whatsapp: "5513", criadoEm: "x" }), linha({ ajuste: "5513", pixPago: true }), linha({ nome: "Ana Paula", whatsapp: "5513", criadoEm: "y" })].join("\n");
+    expect(juntarInscricoes(raw)).toEqual([{ nome: "Ana Paula", whatsapp: "5513", criadoEm: "y" }]);
   });
+});
 
-  it("reinscrição sem camiseta mantém a camiseta paga", () => {
+describe("juntarPedidos", () => {
+  it("cada pedido vale por si e o ajuste marca pago", () => {
     const raw = [
-      linha({ nome: "Ana", whatsapp: "5513", criadoEm: "x", camiseta: "M", pagamentoId: "pay_1" }),
-      linha({ ajuste: "5513", pixPago: true }),
-      linha({ nome: "Ana Paula", whatsapp: "5513", criadoEm: "y" }),
+      linha(pedido({ id: "pay_1", itens: { M: 2 } })),
+      linha(pedido({ id: "pay_2", itens: { G: 1 } })),
+      linha({ ajuste: "pay_1", pago: true }),
     ].join("\n");
-    expect(juntarInscricoes(raw)[0]).toMatchObject({ nome: "Ana Paula", camiseta: "M", pixPago: true });
-  });
-
-  it("reinscrição sem camiseta descarta pedido não pago", () => {
-    const raw = [linha({ nome: "Ana", whatsapp: "5513", criadoEm: "x", camiseta: "M", pagamentoId: "pay_1" }), linha({ nome: "Ana", whatsapp: "5513", criadoEm: "y" })].join("\n");
-    expect(juntarInscricoes(raw)[0].camiseta).toBeUndefined();
+    const r = juntarPedidos(raw);
+    expect(r).toHaveLength(2);
+    expect(r.find((p) => p.id === "pay_1")?.pago).toBe(true);
+    expect(r.find((p) => p.id === "pay_2")?.pago).toBeUndefined();
   });
 });
 
-describe("contarCamisetas", () => {
-  it("separa pagas por tamanho e aguardando", () => {
-    const r = contarCamisetas([
-      { nome: "a", whatsapp: "1", criadoEm: "", camiseta: "M", pixPago: true },
-      { nome: "b", whatsapp: "2", criadoEm: "", camiseta: "GG" },
-      { nome: "c", whatsapp: "3", criadoEm: "" },
-    ]);
-    expect(r).toEqual({ pagas: { P: 0, M: 1, G: 0, GG: 0 }, aguardando: 1 });
+describe("itens", () => {
+  it("limpa tamanho inválido e quantidade não inteira", () => {
+    expect(limparItens({ P: 2, M: 0, G: 1.5, GG: "3", XL: 4 })).toEqual({ P: 2, GG: 3 });
+  });
+  it("descreve na ordem dos tamanhos", () => {
+    expect(descreverItens({ G: 1, M: 2 })).toBe("2 M, 1 G");
   });
 });
 
-describe("disponiveis", () => {
+describe("estoque", () => {
   const agora = Date.parse("2026-11-20T12:00:00Z");
-  it("desconta pagas e pendentes de até 2h; pendente velho libera", () => {
+  it("desconta pagos e pendentes de até 2h; pendente velho libera", () => {
     const r = disponiveis(
       [
-        { nome: "a", whatsapp: "1", criadoEm: "2026-11-19T12:00:00Z", camiseta: "GG", pixPago: true },
-        { nome: "b", whatsapp: "2", criadoEm: "2026-11-20T11:30:00Z", camiseta: "GG" },
-        { nome: "c", whatsapp: "3", criadoEm: "2026-11-20T08:00:00Z", camiseta: "GG" },
+        pedido({ id: "a", itens: { GG: 2, M: 1 }, pago: true, criadoEm: "2026-11-19T12:00:00Z" }),
+        pedido({ id: "b", itens: { GG: 1 }, criadoEm: "2026-11-20T11:30:00Z" }),
+        pedido({ id: "c", itens: { GG: 3 }, criadoEm: "2026-11-20T08:00:00Z" }),
       ],
       agora,
     );
-    expect(r).toEqual({ P: 20, M: 30, G: 20, GG: 8 });
+    expect(r).toEqual({ P: 20, M: 29, G: 20, GG: 7 });
+  });
+  it("conta pagas por tamanho e peças aguardando", () => {
+    const r = contarCamisetas([pedido({ id: "a", itens: { M: 2 }, pago: true }), pedido({ id: "b", itens: { P: 1, GG: 2 } })]);
+    expect(r).toEqual({ pagas: { P: 0, M: 2, G: 0, GG: 0 }, aguardando: 3 });
   });
 });
