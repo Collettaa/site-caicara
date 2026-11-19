@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contarCamisetas, juntarInscricoes } from "@/lib/corrida-bambu";
+import { contarCamisetas, disponiveis, juntarInscricoes } from "@/lib/corrida-bambu";
 
 const linha = (o: object) => JSON.stringify(o);
 
@@ -32,5 +32,20 @@ describe("contarCamisetas", () => {
       { nome: "c", whatsapp: "3", criadoEm: "" },
     ]);
     expect(r).toEqual({ pagas: { P: 0, M: 1, G: 0, GG: 0 }, aguardando: 1 });
+  });
+});
+
+describe("disponiveis", () => {
+  const agora = Date.parse("2026-11-20T12:00:00Z");
+  it("desconta pagas e pendentes de até 2h; pendente velho libera", () => {
+    const r = disponiveis(
+      [
+        { nome: "a", whatsapp: "1", criadoEm: "2026-11-19T12:00:00Z", camiseta: "GG", pixPago: true },
+        { nome: "b", whatsapp: "2", criadoEm: "2026-11-20T11:30:00Z", camiseta: "GG" },
+        { nome: "c", whatsapp: "3", criadoEm: "2026-11-20T08:00:00Z", camiseta: "GG" },
+      ],
+      agora,
+    );
+    expect(r).toEqual({ P: 20, M: 30, G: 20, GG: 8 });
   });
 });

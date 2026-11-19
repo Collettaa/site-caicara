@@ -3,6 +3,7 @@ import {
   camisetaAberta,
   corridaBambu,
   criarCobrancaCamiseta,
+  disponiveis,
   formas,
   emFila,
   isValidCpf,
@@ -45,6 +46,14 @@ export async function POST(request: Request) {
   const cpf = typeof body.cpf === "string" ? body.cpf : "";
   if (camiseta && !isValidCpf(cpf)) {
     return NextResponse.json({ error: "Confere o CPF. Ele é pedido só para gerar a cobrança." }, { status: 400 });
+  }
+
+  // Mesmo WhatsApp pedindo de novo não conta contra ele mesmo.
+  if (camiseta) {
+    const outros = (await listInscricoes()).filter((i) => i.whatsapp !== whatsapp);
+    if (disponiveis(outros)[camiseta] < 1) {
+      return NextResponse.json({ error: `Acabou a camiseta ${camiseta}. Escolhe outro tamanho.` }, { status: 409 });
+    }
   }
 
   let cobranca: CobrancaBambu | undefined;

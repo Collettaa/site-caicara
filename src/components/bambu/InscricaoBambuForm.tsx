@@ -20,7 +20,7 @@ type Cobranca = { forma: Forma; paymentId: string; invoiceUrl: string; qrCodeIma
 type Props = {
   quando: string;
   /** null = camiseta não está à venda agora. */
-  camiseta: { valor: number; pedidoAte: string } | null;
+  camiseta: { valor: number; pedidoAte: string; livres: Record<string, number> } | null;
 };
 
 export function InscricaoBambuForm({ quando, camiseta }: Props) {
@@ -121,14 +121,25 @@ export function InscricaoBambuForm({ quando, camiseta }: Props) {
           {querCamiseta ? (
             <>
               <p className="text-base">
-                <strong>R$ {camiseta.valor}</strong>, no Pix ou no cartão (1x). Pedido até {camiseta.pedidoAte}. Retira no dia da corrida.
+                <strong>R$ {camiseta.valor}</strong>, no Pix ou no cartão (1x). Dry fit, medidas na etiqueta lá em cima. Pedido até {camiseta.pedidoAte}, retira no dia da corrida e ganha um chope da Everbrew.
               </p>
               <div className="grid grid-cols-4 gap-2" role="group" aria-label="Tamanho">
-                {TAMANHOS.map((t) => (
-                  <button key={t} type="button" aria-pressed={tamanho === t} onClick={() => setTamanho(t)} className={`${OPCAO} ${tamanho === t ? OPCAO_ON : OPCAO_OFF}`}>
-                    {t}
-                  </button>
-                ))}
+                {TAMANHOS.map((t) => {
+                  const esgotou = (camiseta.livres[t] ?? 0) < 1;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      disabled={esgotou}
+                      aria-pressed={tamanho === t}
+                      aria-label={esgotou ? `${t}, esgotou` : t}
+                      onClick={() => setTamanho(t)}
+                      className={`${OPCAO} ${tamanho === t ? OPCAO_ON : OPCAO_OFF} disabled:cursor-not-allowed disabled:border-dashed disabled:bg-transparent disabled:text-[#09300b]/40 disabled:line-through disabled:shadow-none`}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
               </div>
               <div className="grid grid-cols-2 gap-3" role="group" aria-label="Pagamento">
                 {(["pix", "cartao"] as const).map((f) => (

@@ -12,7 +12,9 @@ export const corridaBambu = {
   dateLabel: "Sexta, 27/11",
   hora: "20h",
   // null = a página não mostra a linha.
-  local: "Itararé, São Vicente" as string | null, // endereço exato da unidade nova: Gabriel manda
+  local: "Av. Ayrton Senna, quiosque 47B, Itararé" as string | null, // Gabriel, 19/11
+  mapa: "https://www.google.com/maps/search/?api=1&query=Av.+Ayrton+Senna+quiosque+47B+Itarar%C3%A9+S%C3%A3o+Vicente+SP",
+  chegada: "Pagode do Luty RJ", // na chegada da corrida (Gabriel, 19/11)
   percurso: null as string | null,
   inscricoesAbertas: true,
   // Camiseta do evento (Gabriel, 17/11): vendida pelo site, Pix na conta ASAAS_*.
@@ -25,6 +27,11 @@ export const corridaBambu = {
     },
     pedidoAte: "2026-11-24", // último dia de pedido, horário de São Paulo
     pedidoAteLabel: "24/11",
+    tecido: "Dry fit",
+    brinde: "um chope da Everbrew", // quem compra a camiseta ganha (Gabriel, 19/11)
+    // Estoque do fornecedor (Gabriel, 19/11). Medidas em cm, tabela do fornecedor.
+    estoque: { P: 20, M: 30, G: 20, GG: 10 } as Record<"P" | "M" | "G" | "GG", number>,
+    medidas: { P: [70, 50], M: [72, 52], G: [74, 56], GG: [76, 59] } as Record<"P" | "M" | "G" | "GG", [number, number]>,
   },
 };
 
@@ -108,6 +115,20 @@ export async function listInscricoes(): Promise<InscricaoBambu[]> {
   } catch {
     return [];
   }
+}
+
+// Pedido com pagamento pendente segura a camiseta por 2 horas; pago segura sempre.
+const RESERVA_MS = 2 * 60 * 60 * 1000;
+
+/** Quantas camisetas ainda dá pra vender de cada tamanho (estoque − pagas − pendentes recentes). */
+export function disponiveis(lista: InscricaoBambu[], agora = Date.now()): Record<Tamanho, number> {
+  const livres = { ...corridaBambu.camiseta.estoque };
+  for (const i of lista) {
+    if (!i.camiseta) continue;
+    if (i.pixPago || agora - Date.parse(i.criadoEm) < RESERVA_MS) livres[i.camiseta] -= 1;
+  }
+  for (const t of tamanhos) livres[t] = Math.max(0, livres[t]);
+  return livres;
 }
 
 /** Camisetas pagas por tamanho, para o pedido ao fornecedor. */
