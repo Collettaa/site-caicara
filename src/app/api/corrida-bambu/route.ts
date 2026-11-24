@@ -24,7 +24,7 @@ import {
 export const runtime = "nodejs";
 
 /**
- * Um envio pode inscrever na corrida, comprar camisetas, ou os dois.
+ * Um envio pode inscrever no treinão, comprar camisetas, ou os dois.
  * Body: { nome, whatsapp, corre: boolean, itens?: {P,M,G,GG}, forma?: "pix"|"cartao", cpf?, site? }
  */
 export async function POST(request: Request) {
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   const corre = body.corre !== false;
   const itens = limparItens(body.itens);
   const qtd = quantidade(itens);
-  if (!corre && qtd === 0) return NextResponse.json({ error: "Escolhe correr, a camiseta ou os dois." }, { status: 400 });
+  if (!corre && qtd === 0) return NextResponse.json({ error: "Escolhe participar, a camiseta ou os dois." }, { status: 400 });
   if (corre && !corridaBambu.inscricoesAbertas) return NextResponse.json({ error: "Inscrições encerradas." }, { status: 410 });
 
   let cobranca: CobrancaBambu | undefined;
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
   }
 
   await notifyGabriel([
-    corre ? "🏃 Nova inscrição na corrida do Bambu Gastro Bar" : "👕 Pedido de camiseta da corrida do Bambu (sem inscrição)",
+    corre ? "🏃 Nova inscrição no treinão do Bambu Gastro Bar" : "👕 Pedido de camiseta do treinão do Bambu (sem inscrição)",
     nome,
     `wa.me/${whatsapp}`,
     cobranca ? `Camisetas: ${descreverItens(itens)} · R$ ${cobranca.total} no ${cobranca.forma === "cartao" ? "cartão" : "Pix"} (aguardando)` : null,

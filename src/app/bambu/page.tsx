@@ -24,15 +24,15 @@ const APOIO = [
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Corrida de inauguração do Bambu Gastro Bar | Inscrição grátis",
+  title: "Treinão de inauguração do Bambu Gastro Bar | Inscrição grátis",
   description:
-    "Corrida leve de inauguração do Bambu Gastro Bar com a Caiçara Fit: sexta, 27/11, às 20h, Av. Ayrton Senna, quiosque 47B, Itararé, São Vicente. Grátis, com pagode do Luty RJ na chegada.",
+    "Treinão de inauguração do Bambu Gastro Bar com a Caiçara Fit: sexta, 27/11, às 20h, Av. Ayrton Senna, quiosque 47B, Itararé, São Vicente. Grátis, com pagode do Luty RJ na chegada.",
   alternates: { canonical: "/bambu" },
   openGraph: {
     type: "website",
     locale: "pt_BR",
     url: "/bambu",
-    title: "Corrida de inauguração do Bambu Gastro Bar",
+    title: "Treinão de inauguração do Bambu Gastro Bar",
     description: "Sexta, 27/11, 20h, quiosque 47B do Itararé. Grátis, com pagode na chegada.",
     images: [{ url: "/images/bambu/noite.jpg", width: 1200, height: 1600, alt: "Bambu lotado à noite, de frente pro mar" }],
   },
@@ -56,20 +56,20 @@ export default async function BambuPage() {
         <div className="mx-auto max-w-2xl">
           <Image src={logoBambu} alt="Bambu Gastro Bar" priority className="mx-auto h-auto w-full max-w-[420px]" />
           <h1 className="mt-10 font-heading text-5xl font-bold uppercase leading-[0.95] sm:text-7xl">
-            Corrida de
+            Treinão de
             <br />
             inauguração
           </h1>
           <p className="mt-4 font-heading text-3xl font-semibold text-[#f0c94c]">{quando}</p>
           <p className="mt-4 max-w-md text-lg leading-relaxed text-[#fdf3c4]/85">
-            Uma corrida leve pra abrir a unidade nova do Bambu Gastro Bar, no Itararé. Cada um no seu ritmo. Na
-            chegada, tem pagode do Luty RJ.
+            Um treinão pra abrir a unidade nova do Bambu Gastro Bar, no Itararé. A gente começa com uma corrida leve,
+            cada um no seu ritmo. No fim, tem pagode do Luty RJ.
           </p>
           <a
             href="#inscricao"
             className="mt-8 inline-flex h-16 w-full items-center justify-center rounded-2xl border-2 border-[#fdf3c4] bg-[#f0c94c] px-8 font-heading text-xl font-bold uppercase text-[#09300b] shadow-[4px_4px_0_#fdf3c4] transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[#f0c94c] sm:w-auto"
           >
-            Quero correr
+            Quero participar
           </a>
         </div>
       </section>
@@ -119,7 +119,7 @@ export default async function BambuPage() {
               />
             </div>
             <figcaption className="mt-3 font-[family-name:var(--font-marker)] text-xl text-[#8dbb55]">
-              depois da corrida, a festa é no Bambu
+              depois do treinão, a festa é no Bambu
             </figcaption>
           </figure>
         </div>
@@ -131,10 +131,10 @@ export default async function BambuPage() {
           <h2 className="font-heading text-4xl font-bold uppercase leading-none">Tem camiseta</h2>
           <p className="mt-3 max-w-md text-lg text-[#fdf3c4]/85">
             {tecido}, branca, com o Bambu na frente e a orla de São Vicente embaixo. Dá pra comprar mais de uma, e não
-            precisa correr pra comprar. Pedido até {pedidoAteLabel}, retira no dia da corrida.
+            precisa participar pra comprar. Pedido até {pedidoAteLabel}, retira no dia do treinão.
           </p>
           <div className="mt-6 overflow-hidden rounded-3xl border-4 border-[#f0c94c]">
-            <Image src={fotoCamiseta} alt="Camiseta da corrida, frente e costas, com os apoiadores" sizes="(max-width: 672px) 100vw, 672px" className="h-auto w-full" />
+            <Image src={fotoCamiseta} alt="Camiseta do treinão, frente e costas, com os apoiadores" sizes="(max-width: 672px) 100vw, 672px" className="h-auto w-full" />
           </div>
 
           {/* Etiqueta de roupa: costura tracejada, tamanho e medidas. */}
@@ -176,7 +176,7 @@ export default async function BambuPage() {
       <section id="inscricao" className="scroll-mt-20 bg-[#8dbb55] px-4 py-14 text-[#09300b]">
         <div className="mx-auto max-w-xl">
           <h2 className="font-heading text-4xl font-bold uppercase">{vendendo ? "Inscrição e camiseta" : "Inscrição"}</h2>
-          <p className="mt-2 text-lg">{vendendo ? "Corre de graça, compra a camiseta, ou os dois." : "Nome e WhatsApp. Só isso."}</p>
+          <p className="mt-2 text-lg">{vendendo ? "Participa de graça, compra a camiseta, ou os dois." : "Nome e WhatsApp. Só isso."}</p>
           <div className="mt-6">
             {corridaBambu.inscricoesAbertas || vendendo ? (
               <InscricaoBambuForm

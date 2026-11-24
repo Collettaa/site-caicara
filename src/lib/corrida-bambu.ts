@@ -5,20 +5,21 @@ import { enviarWhatsapp } from "@/lib/whatsapp";
 
 export { formatWhatsapp, isValidCpf, normalizeWhatsapp } from "@/lib/contato";
 
-// Corrida leve e grátis na inauguração do Bambu Gastro Bar (Gabriel, 16/11/2026).
+// Treinão grátis na inauguração do Bambu Gastro Bar (Gabriel, 16/11/2026).
+// No site é "treinão", nunca "corrida" (Gabriel, 24/11). Só a descrição pode dizer que começa correndo.
 export const corridaBambu = {
-  title: "Corrida de inauguração do Bambu Gastro Bar",
+  title: "Treinão de inauguração do Bambu Gastro Bar",
   date: "2026-11-27",
   dateLabel: "Sexta, 27/11",
   hora: "20h",
   // null = a página não mostra a linha.
   local: "Av. Ayrton Senna, quiosque 47B, Itararé" as string | null, // Gabriel, 19/11
   mapa: "https://www.google.com/maps/search/?api=1&query=Av.+Ayrton+Senna+quiosque+47B+Itarar%C3%A9+S%C3%A3o+Vicente+SP",
-  chegada: "Pagode do Luty RJ", // na chegada da corrida (Gabriel, 19/11)
+  chegada: "Pagode do Luty RJ", // na chegada (Gabriel, 19/11)
   percurso: null as string | null,
   inscricoesAbertas: true,
   // Camiseta do evento (Gabriel, 17/11): vendida pelo site, Pix ou cartão 1x na conta ASAAS_*.
-  // Dá pra comprar várias e sem se inscrever na corrida (Gabriel, 19/11).
+  // Dá pra comprar várias e sem se inscrever no treinão (Gabriel, 19/11).
   // Sem preço = mostra a camiseta como "em breve" e não vende. Preço vai na variável
   // BAMBU_CAMISETA_VALOR do serviço (muda sem build: docker service update --env-add).
   camiseta: {

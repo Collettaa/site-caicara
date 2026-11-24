@@ -57,7 +57,7 @@ export function InscricaoBambuForm({ quando, inscricoesAbertas, camiseta }: Prop
     event.preventDefault();
     setError("");
     if (!corre && !comCamiseta) {
-      setError("Escolhe correr, a camiseta ou os dois.");
+      setError("Escolhe participar, a camiseta ou os dois.");
       return;
     }
     if (comCamiseta && pecas === 0) {
@@ -108,12 +108,12 @@ export function InscricaoBambuForm({ quando, inscricoesAbertas, camiseta }: Prop
   }
 
   const textoBotao = !comCamiseta
-    ? "Quero correr"
+    ? "Quero participar"
     : pecas === 0
       ? "Escolhe as camisetas"
       : forma === "pix"
-        ? `${corre ? "Correr e gerar" : "Gerar"} Pix de R$ ${total}`
-        : `${corre ? "Correr e pagar" : "Pagar"} R$ ${total}`;
+        ? `${corre ? "Participar e gerar" : "Gerar"} Pix de R$ ${total}`
+        : `${corre ? "Participar e pagar" : "Pagar"} R$ ${total}`;
 
   return (
     <form onSubmit={enviar} className={`grid gap-5 ${CAIXA}`}>
@@ -128,7 +128,7 @@ export function InscricaoBambuForm({ quando, inscricoesAbertas, camiseta }: Prop
               onClick={() => setCorre((v) => !v)}
               className={`${OPCAO} ${corre ? OPCAO_ON : OPCAO_OFF} disabled:opacity-40`}
             >
-              Correr
+              Treinão
               <br />
               (grátis)
             </button>
@@ -138,7 +138,7 @@ export function InscricaoBambuForm({ quando, inscricoesAbertas, camiseta }: Prop
               (R$ {camiseta.valor})
             </button>
           </div>
-          <p className="text-sm">Dá pra marcar os dois. Pra comprar camiseta não precisa correr.</p>
+          <p className="text-sm">Dá pra marcar os dois. Pra comprar camiseta não precisa participar.</p>
         </fieldset>
       ) : null}
 
@@ -207,7 +207,7 @@ export function InscricaoBambuForm({ quando, inscricoesAbertas, camiseta }: Prop
             ) : (
               <>Dry fit, medidas na etiqueta lá em cima. Cada camiseta vale {camiseta.brinde}.</>
             )}{" "}
-            Pedido até {camiseta.pedidoAte}, retira no dia da corrida.
+            Pedido até {camiseta.pedidoAte}, retira no dia do treinão.
           </p>
           <div className="grid grid-cols-2 gap-3" role="group" aria-label="Pagamento">
             {(["pix", "cartao"] as const).map((f) => (

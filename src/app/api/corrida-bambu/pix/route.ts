@@ -3,7 +3,7 @@ import { conferirPedido, listPedidos } from "@/lib/corrida-bambu";
 
 export const runtime = "nodejs";
 
-// Só consulta cobrança que saiu do formulário da corrida do Bambu. Pago = grava no pedido.
+// Só consulta cobrança que saiu do formulário do treinão do Bambu. Pago = grava no pedido.
 export async function GET(request: Request) {
   const id = new URL(request.url).searchParams.get("id");
   const pedido = id ? (await listPedidos()).find((p) => p.id === id) : undefined;

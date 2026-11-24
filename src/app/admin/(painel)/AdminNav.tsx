@@ -15,7 +15,7 @@ const LINKS = [
   { href: "/admin/balcao", label: "Balcão" },
   { href: "/admin/produtos", label: "Produtos" },
   { href: "/admin/murph", label: "Murph" },
-  { href: "/admin/corrida", label: "Corrida" },
+  { href: "/admin/corrida", label: "Treinão" },
   { href: "/admin/aulao", label: "Aulão" },
   { href: "/admin/financeiro", label: "Financeiro" },
 ];
