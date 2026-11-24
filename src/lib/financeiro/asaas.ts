@@ -41,15 +41,17 @@ const CACHE_MS = 5 * 60 * 1000;
 
 async function buscar(mes: string, hoje: string) {
   const { inicio, fim, criadaDesde } = limites(mes);
-  const [pagasOuNoMes, abertas, extrato, clientes, saldo] = await Promise.all([
+  const [pagasOuNoMes, pagasNoMes, abertas, extrato, clientes, saldo] = await Promise.all([
     tudo<Cobranca>(`/payments?dateCreated[ge]=${criadaDesde}&dateCreated[le]=${fim}`),
+    // carnê de boleto cria as parcelas todas no dia da venda: busca também pela data do pagamento
+    tudo<Cobranca>(`/payments?paymentDate[ge]=${inicio}&paymentDate[le]=${fim}`),
     Promise.all([tudo<Cobranca>("/payments?status=PENDING"), tudo<Cobranca>("/payments?status=OVERDUE")]).then((x) => x.flat()),
     tudo<Movimento>(`/financialTransactions?startDate=${inicio}&finishDate=${fim}`),
     tudo<{ id: string; name: string }>("/customers"),
     asaasFetch<{ balance: number }>(cfg(), "/finance/balance"),
   ]);
   const porId = new Map<string, Cobranca>();
-  for (const c of [...pagasOuNoMes, ...abertas]) porId.set(c.id, c);
+  for (const c of [...pagasOuNoMes, ...pagasNoMes, ...abertas]) porId.set(c.id, c);
   const nomes = new Map(clientes.map((c) => [c.id, c.name]));
   return { resumo: montarResumo(mes, hoje, [...porId.values()], extrato, nomes), saldo: saldo.balance };
 }

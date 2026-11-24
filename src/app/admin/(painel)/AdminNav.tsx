@@ -5,8 +5,13 @@ import { usePathname } from "next/navigation";
 import { sairAction } from "../login/actions";
 
 const LINKS = [
-  { href: "/admin", label: "Pedidos" },
+  { href: "/admin/caixa", label: "Caixa" },
+  { href: "/admin/contas", label: "Contas" },
+  { href: "/admin/parcelados", label: "Parcelados" },
   { href: "/admin/pendencias", label: "Pendências" },
+  { href: "/admin/automacoes", label: "Automações" },
+  { href: "/admin", label: "Pedidos" },
+  { href: "/admin/encomendas", label: "Encomendas" },
   { href: "/admin/balcao", label: "Balcão" },
   { href: "/admin/produtos", label: "Produtos" },
   { href: "/admin/murph", label: "Murph" },

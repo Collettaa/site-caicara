@@ -54,6 +54,13 @@ export function origemDe(c: Pick<Cobranca, "externalReference" | "description" |
   return "outros";
 }
 
+/** Com valor: plano anual no cartão sem descrição (12× R$ 117,90) é mensalidade, não "Outros". */
+export function origemCompleta(c: Pick<Cobranca, "externalReference" | "description" | "subscription" | "value">): Origem {
+  const o = origemDe(c);
+  if (o === "outros" && Math.abs(c.value - 117.9) < 0.005 && /^(parcela \d+ de 12\.?\s*)?$/.test(semAcento(c.description ?? "").trim())) return "mensalidades";
+  return o;
+}
+
 const PAGO = new Set(["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"]);
 
 const FORMA: Record<string, string> = {
@@ -91,10 +98,15 @@ export type ResumoMes = {
   taxas: number;
   taxaAntecipacao: number;
   transferencias: number;
+  /** Taxas do Asaas (cobrança, mensagem, antecipação) por dia, positivo. */
+  taxasPorDia: Record<string, number>;
   aReceber: Aberto[];
   vencidos: Aberto[];
 };
 
+const TIPOS_TAXA = [
+  "PAYMENT_FEE", "PAYMENT_MESSAGING_NOTIFICATION_FEE", "INSTANT_TEXT_MESSAGE_FEE", "PAYMENT_DUNNING_REQUEST_FEE", "RECEIVABLE_ANTICIPATION_FEE",
+];
 const dentro = (data: string | null | undefined, mes: string) => Boolean(data && data.startsWith(mes));
 const centavos = (v: number) => Math.round(v * 100) / 100;
 
@@ -116,7 +128,7 @@ export function montarResumo(
 
   for (const c of cobrancas) {
     if (!PAGO.has(c.status) || !dentro(c.clientPaymentDate, mes)) continue;
-    const origem = origemDe(c);
+    const origem = origemCompleta(c);
     pagoPorOrigem[origem] = centavos(pagoPorOrigem[origem] + c.value);
     const chave = c.installment ? `parc:${c.installment}` : c.id;
     const atual = porCompra.get(chave);
@@ -144,7 +156,7 @@ export function montarResumo(
     vencimento: c.dueDate,
     cliente: nomes.get(c.customer) ?? "—",
     descricao: c.description ?? "",
-    origem: origemDe(c),
+    origem: origemCompleta(c),
     valor: c.value,
   });
   // Atrasado = venceu e não pagou, calculado agora (status do Asaas pode estar 1 dia atrás).
@@ -165,7 +177,7 @@ export function montarResumo(
   for (const c of cobrancas) {
     if (!PAGO.has(c.status) || !dentro(c.clientPaymentDate, mes)) continue;
     const d = porDia[Number(c.clientPaymentDate!.slice(8, 10)) - 1];
-    const o = origemDe(c);
+    const o = origemCompleta(c);
     d.porOrigem[o] = centavos(d.porOrigem[o] + c.value);
     d.total = centavos(d.total + c.value);
   }
@@ -181,6 +193,9 @@ export function montarResumo(
     taxas: -soma(["PAYMENT_FEE", "PAYMENT_MESSAGING_NOTIFICATION_FEE", "INSTANT_TEXT_MESSAGE_FEE", "PAYMENT_DUNNING_REQUEST_FEE"]),
     taxaAntecipacao: -soma(["RECEIVABLE_ANTICIPATION_FEE"]),
     transferencias: -soma(["TRANSFER"]),
+    taxasPorDia: extrato
+      .filter((x) => TIPOS_TAXA.includes(x.type) && dentro(x.date, mes))
+      .reduce<Record<string, number>>((t, x) => ({ ...t, [x.date]: centavos((t[x.date] ?? 0) - x.value) }), {}),
     aReceber,
     vencidos,
   };

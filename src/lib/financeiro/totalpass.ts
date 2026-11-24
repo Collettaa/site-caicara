@@ -99,6 +99,7 @@ export type TotalPassMes = {
   pessoas: number;
   previsto: number;
   porDia: number[]; // check-ins por dia do mês (índice 0 = dia 1)
+  repassePorDia: number[]; // previsto por dia (mesmo índice)
   primeiro: string | null;
   ultimo: string | null;
   maisFrequentes: { pessoa: string; checkins: number }[];
@@ -109,9 +110,11 @@ export function resumoTotalPass(todos: Checkin[], mes: string): TotalPassMes {
   const dias = new Date(Date.UTC(a, m, 0)).getUTCDate();
   const doMes = todos.filter((c) => c.quando.startsWith(mes)).sort((x, y) => x.quando.localeCompare(y.quando));
   const porDia = Array.from({ length: dias }, () => 0);
+  const repassePorDia = Array.from({ length: dias }, () => 0);
   const porPessoa = new Map<string, number>();
   for (const c of doMes) {
     porDia[Number(c.quando.slice(8, 10)) - 1] += 1;
+    repassePorDia[Number(c.quando.slice(8, 10)) - 1] += c.repasse;
     porPessoa.set(c.pessoa, (porPessoa.get(c.pessoa) ?? 0) + 1);
   }
   return {
@@ -119,6 +122,7 @@ export function resumoTotalPass(todos: Checkin[], mes: string): TotalPassMes {
     pessoas: porPessoa.size,
     previsto: Math.round(doMes.reduce((t, c) => t + c.repasse, 0) * 100) / 100,
     porDia,
+    repassePorDia: repassePorDia.map((v) => Math.round(v * 100) / 100),
     primeiro: doMes[0]?.quando.slice(0, 10) ?? null,
     ultimo: doMes.at(-1)?.quando.slice(0, 10) ?? null,
     maisFrequentes: [...porPessoa.entries()]
