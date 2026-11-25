@@ -32,6 +32,8 @@ export const corridaBambu = {
     tecido: "Dry fit",
     brinde: "um chope da Everbrew", // cada camiseta comprada (Gabriel, 19/11)
     maxPorPedido: 10,
+    // Desde 25/11 a camiseta é vendida na loja (Pix ou até 2x no cartão), estoque único lá.
+    slugLoja: "camiseta-treinao-bambu",
     // Estoque do fornecedor (Gabriel, 19/11). Medidas em cm, tabela do fornecedor.
     estoque: { P: 20, M: 30, G: 20, GG: 10 } as Record<"P" | "M" | "G" | "GG", number>,
     medidas: { P: [70, 50], M: [72, 52], G: [74, 56], GG: [76, 59] } as Record<"P" | "M" | "G" | "GG", [number, number]>,

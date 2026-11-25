@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { InscricaoBambuForm } from "@/components/bambu/InscricaoBambuForm";
-import { camisetaAberta, corridaBambu, disponiveis, listPedidos, tamanhos } from "@/lib/corrida-bambu";
+import { corridaBambu, tamanhos } from "@/lib/corrida-bambu";
+import { getDb } from "@/lib/loja/db";
+import { buscarPorSlug } from "@/lib/loja/produtos";
 import fotoCamiseta from "../../../public/images/bambu/camiseta.jpg";
 import logoBambu from "../../../public/images/bambu/logo-bambu-gastro.png";
 import fotoNoite from "../../../public/images/bambu/noite.jpg";
@@ -45,9 +47,15 @@ const PULSEIRA = ["Grátis", "Sexta 27/11", "20h", "Quiosque 47B", "Pagode na ch
 export default async function BambuPage() {
   const { dateLabel, hora, local, mapa, chegada, percurso } = corridaBambu;
   const quando = `${dateLabel}, às ${hora}`;
-  const { valor, pedidoAteLabel, tecido, brinde, medidas, maxPorPedido } = corridaBambu.camiseta;
-  const vendendo = camisetaAberta() && valor !== null;
-  const livres = disponiveis(await listPedidos());
+  const { tecido, brinde, medidas, slugLoja } = corridaBambu.camiseta;
+  // A camiseta é vendida na loja: preço e estoque vêm do produto de lá.
+  const produto = buscarPorSlug(getDb(), slugLoja);
+  const livres = Object.fromEntries(
+    tamanhos.map((t) => [t, produto?.variacoes.filter((v) => v.ativo && v.tamanho === t).reduce((n, v) => n + v.estoque, 0) ?? 0]),
+  ) as Record<(typeof tamanhos)[number], number>;
+  const vendendo = Boolean(produto?.ativo) && tamanhos.some((t) => livres[t] > 0);
+  const valor = produto ? produto.preco / 100 : null;
+  const linkLoja = `/loja/${slugLoja}`;
 
   return (
     <div className="overflow-x-clip bg-[#09300b] text-[#fdf3c4]">
@@ -131,7 +139,7 @@ export default async function BambuPage() {
           <h2 className="font-heading text-4xl font-bold uppercase leading-none">Tem camiseta</h2>
           <p className="mt-3 max-w-md text-lg text-[#fdf3c4]/85">
             {tecido}, branca, com o Bambu na frente e a orla de São Vicente embaixo. Dá pra comprar mais de uma, e não
-            precisa participar pra comprar. Pedido até {pedidoAteLabel}, retira no dia do treinão.
+            precisa participar pra comprar. Está na loja do site.
           </p>
           <div className="mt-6 overflow-hidden rounded-3xl border-4 border-[#f0c94c]">
             <Image src={fotoCamiseta} alt="Camiseta do treinão, frente e costas, com os apoiadores" sizes="(max-width: 672px) 100vw, 672px" className="h-auto w-full" />
@@ -164,8 +172,16 @@ export default async function BambuPage() {
           </div>
 
           <p className="mt-8 font-heading text-2xl font-semibold text-[#f0c94c]">
-            {vendendo ? `R$ ${valor} cada, no Pix ou no cartão (1x). Pede aqui embaixo.` : "Venda abre em breve, aqui nesta página."}
+            {vendendo ? `R$ ${valor}, no Pix ou em até ${produto?.parcelasMax ?? 1}x no cartão.` : "Esgotou."}
           </p>
+          {vendendo ? (
+            <a
+              href={linkLoja}
+              className="mt-4 inline-flex h-16 w-full items-center justify-center rounded-2xl border-2 border-[#fdf3c4] bg-[#f0c94c] px-8 font-heading text-xl font-bold uppercase text-[#09300b] shadow-[4px_4px_0_#fdf3c4] transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[#f0c94c] sm:w-auto"
+            >
+              Comprar camiseta
+            </a>
+          ) : null}
           {brinde ? (
             <p className="mt-2 font-[family-name:var(--font-marker)] text-xl text-[#8dbb55]">cada camiseta vale {brinde}</p>
           ) : null}
@@ -175,14 +191,14 @@ export default async function BambuPage() {
       {/* Inscrição. */}
       <section id="inscricao" className="scroll-mt-20 bg-[#8dbb55] px-4 py-14 text-[#09300b]">
         <div className="mx-auto max-w-xl">
-          <h2 className="font-heading text-4xl font-bold uppercase">{vendendo ? "Inscrição e camiseta" : "Inscrição"}</h2>
-          <p className="mt-2 text-lg">{vendendo ? "Participa de graça, compra a camiseta, ou os dois." : "Nome e WhatsApp. Só isso."}</p>
+          <h2 className="font-heading text-4xl font-bold uppercase">Inscrição</h2>
+          <p className="mt-2 text-lg">Nome e WhatsApp. Só isso.</p>
           <div className="mt-6">
-            {corridaBambu.inscricoesAbertas || vendendo ? (
+            {corridaBambu.inscricoesAbertas ? (
               <InscricaoBambuForm
                 quando={quando}
                 inscricoesAbertas={corridaBambu.inscricoesAbertas}
-                camiseta={vendendo ? { valor, pedidoAte: pedidoAteLabel, brinde, max: maxPorPedido, livres } : null}
+                camiseta={null}
               />
             ) : (
               <p className="rounded-3xl border-2 border-[#09300b] bg-[#fdf3c4] p-6 font-heading text-2xl font-bold uppercase">
