@@ -3,20 +3,9 @@ import { notFound } from "next/navigation";
 import { CheckCircle2, MessageCircle } from "lucide-react";
 import { BotaoAcao } from "@/app/admin/(painel)/BotaoAcao";
 import { Atualizar } from "@/app/entrega/[token]/Atualizar";
-import { corridaBambu, listPedidos, tamanhos } from "@/lib/corrida-bambu";
-import { getDb } from "@/lib/loja/db";
-import {
-  estoqueDaLoja,
-  linkWhatsapp,
-  resumo,
-  TREINAO_LINK_ATE,
-  type Tamanhos,
-  tokenTreinaoValido,
-  total,
-  type VendaTreinao,
-  vendasDaLoja,
-  vendasDoBambu,
-} from "@/lib/treinao-camisetas";
+import { corridaBambu, tamanhos } from "@/lib/corrida-bambu";
+import { linkWhatsapp, TREINAO_LINK_ATE, type Tamanhos, tokenTreinaoValido, total, type VendaTreinao } from "@/lib/treinao-camisetas";
+import { dadosDoTreinao } from "@/lib/treinao-camisetas-dados";
 import { entregarTreinao } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -47,11 +36,7 @@ export default async function CamisetasTreinaoPage({
   const { token } = await params;
   if (!tokenTreinaoValido(token, new Date())) notFound();
   const { msg, q } = await searchParams;
-  const db = getDb();
-
-  const vendas = [...vendasDaLoja(db), ...vendasDoBambu(await listPedidos())];
-  const estoque = estoqueDaLoja(db);
-  const r = resumo(vendas);
+  const { vendas, estoque, resumo: r } = await dadosDoTreinao();
   const busca = (q ?? "").trim().toLocaleLowerCase("pt-BR");
   const filtrar = (v: VendaTreinao) => !busca || v.nome.toLocaleLowerCase("pt-BR").includes(busca);
   const porNome = (a: VendaTreinao, b: VendaTreinao) => a.nome.localeCompare(b.nome, "pt-BR");

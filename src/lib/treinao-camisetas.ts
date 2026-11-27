@@ -134,3 +134,15 @@ export function linkWhatsapp(numero: string, texto: string): string | null {
   const n = d.length === 10 || d.length === 11 ? `55${d}` : d.startsWith("55") && d.length >= 12 ? d : null;
   return n ? `https://wa.me/${n}?text=${encodeURIComponent(texto)}` : null;
 }
+
+/** Pedidos da loja dessa camiseta ainda esperando pagamento (peças, por tamanho). */
+export function aguardandoNaLoja(db: DatabaseSync): Tamanhos {
+  const linhas = db
+    .prepare(
+      `SELECT v.tamanho, SUM(i.qtd) AS n FROM pedidos pe
+       JOIN itens i ON i.pedido_id = pe.id JOIN variacoes v ON v.id = i.variacao_id JOIN produtos pr ON pr.id = v.produto_id
+       WHERE pr.slug = ? AND pe.status = 'aguardando' GROUP BY v.tamanho`,
+    )
+    .all(corridaBambu.camiseta.slugLoja) as unknown as { tamanho: string; n: number }[];
+  return Object.fromEntries(linhas.map((l) => [l.tamanho, Number(l.n)]));
+}
