@@ -5,14 +5,17 @@ describe("passe do treinão", () => {
   const sexta = new Date("2026-11-27T21:00:00Z"); // 18h em SP
   it("vai de amanhã até 07/12, sem o dia do Murph", () => {
     const d = diasDisponiveis(sexta);
-    expect(d[0]).toEqual({ data: "2026-11-28", rotulo: "sáb 28/11", horarios: ["10h"] });
+    expect(d[0].data).toBe("2026-11-30"); // sáb 28 e dom 29 ficam fora
+    expect(d.every((x) => x.horarios.includes("7h"))).toBe(true);
+    expect(d.some((x) => x.data === "2026-12-05" || x.data === "2026-12-06")).toBe(false);
     expect(d.at(-1)?.data).toBe("2026-12-07");
     expect(d.some((x) => x.data === "2026-12-04")).toBe(false);
     expect(d.find((x) => x.data === "2026-12-01")?.horarios).toContain("7h");
   });
   it("só aceita horário da grade", () => {
     expect(horarioValido("2026-11-30", "9h", sexta)).toBe(true);
-    expect(horarioValido("2026-11-30", "7h", sexta)).toBe(false);
+    expect(horarioValido("2026-11-30", "7h", sexta)).toBe(true);
+    expect(horarioValido("2026-11-28", "10h", sexta)).toBe(false);
     expect(horarioValido("2026-11-27", "19h30", sexta)).toBe(false);
     expect(horarioValido("2026-12-08", "9h", sexta)).toBe(false);
   });

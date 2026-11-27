@@ -18,15 +18,14 @@ export const passeTreinao = {
   semAula: ["2026-12-04"],
 };
 
-// Grade de Cross (Context/organization.md, confirmada em 16/09/2026). 7h e 9h são as turmas mais tranquilas.
+// Grade de Cross (Context/organization.md), só de segunda a sexta (Gabriel, 27/11: sem sábado e domingo;
+// 7h todos os dias). 7h e 9h são as turmas mais tranquilas.
 const GRADE: Record<number, string[]> = {
-  0: ["9h"], // domingo
-  1: ["6h", "8h", "9h", "12h", "16h15", "18h30", "19h30"],
+  1: ["6h", "7h", "8h", "9h", "12h", "16h15", "18h30", "19h30"],
   2: ["6h", "7h", "9h", "12h", "16h15", "20h30"],
-  3: ["6h", "8h", "9h", "12h", "16h15", "18h30", "19h30"],
+  3: ["6h", "7h", "8h", "9h", "12h", "16h15", "18h30", "19h30"],
   4: ["6h", "7h", "9h", "12h", "16h15", "20h30"],
-  5: ["6h", "8h", "9h", "12h", "16h15", "18h30", "19h30"],
-  6: ["10h"], // sábado
+  5: ["6h", "7h", "8h", "9h", "12h", "16h15", "18h30", "19h30"],
 };
 export const TRANQUILAS = new Set(["7h", "9h"]);
 
@@ -51,6 +50,7 @@ export function diasDisponiveis(agora: Date): DiaAula[] {
     if (data > fim) break;
     if (passeTreinao.semAula.includes(data)) continue;
     const semana = d.getUTCDay();
+    if (!GRADE[semana]) continue; // fim de semana fica fora
     const [, mes, dia] = data.split("-");
     out.push({ data, rotulo: `${DIAS[semana]} ${dia}/${mes}`, horarios: GRADE[semana] });
   }
