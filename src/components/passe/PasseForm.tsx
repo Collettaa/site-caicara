@@ -29,6 +29,7 @@ const PERIODOS = [
 export function PasseForm({ dias, tranquilas, comecarAte }: { dias: Dia[]; tranquilas: string[]; comecarAte: string }) {
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [instagram, setInstagram] = useState("");
   const [data, setData] = useState<string | null>(null);
   const [hora, setHora] = useState<string | null>(null);
   const [site, setSite] = useState("");
@@ -60,7 +61,7 @@ export function PasseForm({ dias, tranquilas, comecarAte }: { dias: Dia[]; tranq
       const r = await fetch("/api/passe-treinao", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, whatsapp, data, hora, site }),
+        body: JSON.stringify({ nome, whatsapp, instagram, data, hora, site }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -233,6 +234,20 @@ export function PasseForm({ dias, tranquilas, comecarAte }: { dias: Dia[]; tranq
                 required
                 className="h-14 rounded-2xl border-2 border-[#2A2A2A] bg-[#1B1B1B] px-4 text-lg text-white outline-none placeholder:text-[#5A5A5A] focus:border-[#F8D808]"
               />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-sm text-[#9A9A9A]">Instagram</span>
+              <div className="flex h-14 items-center rounded-2xl border-2 border-[#2A2A2A] bg-[#1B1B1B] focus-within:border-[#F8D808]">
+                <span className="pl-4 text-lg text-[#5A5A5A]">@</span>
+                <input
+                  value={instagram}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  className="h-full w-full rounded-2xl bg-transparent pl-1 pr-4 text-lg text-white outline-none"
+                />
+              </div>
             </label>
             <input value={site} onChange={(e) => setSite(e.target.value)} name="site" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
           </div>

@@ -37,7 +37,10 @@ export interface DiaAula {
   horarios: string[];
 }
 
-const diaSP = (agora: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(agora);
+const diaSP = (agora: Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(
+    agora,
+  );
 
 /** Dias que dá para marcar: de amanhã até `comecarAte`, com os horários da grade. */
 export function diasDisponiveis(agora: Date): DiaAula[] {
@@ -52,19 +55,31 @@ export function diasDisponiveis(agora: Date): DiaAula[] {
     const semana = d.getUTCDay();
     if (!GRADE[semana]) continue; // fim de semana fica fora
     const [, mes, dia] = data.split("-");
-    out.push({ data, rotulo: `${DIAS[semana]} ${dia}/${mes}`, horarios: GRADE[semana] });
+    out.push({
+      data,
+      rotulo: `${DIAS[semana]} ${dia}/${mes}`,
+      horarios: GRADE[semana],
+    });
   }
   return out;
 }
 
-export function horarioValido(data: unknown, hora: unknown, agora: Date): boolean {
+export function horarioValido(
+  data: unknown,
+  hora: unknown,
+  agora: Date,
+): boolean {
   if (typeof data !== "string" || typeof hora !== "string") return false;
-  return diasDisponiveis(agora).some((d) => d.data === data && d.horarios.includes(hora));
+  return diasDisponiveis(agora).some(
+    (d) => d.data === data && d.horarios.includes(hora),
+  );
 }
 
 export type PasseInscricao = {
   nome: string;
   whatsapp: string;
+  /** Instagram sem @, opcional (Gabriel, 27/11). */
+  instagram?: string;
   data: string;
   hora: string;
   origem: string;
@@ -103,6 +118,18 @@ export async function listarPasses(): Promise<PasseInscricao[]> {
   }
 }
 
+/** "@Fulano.Fit " ou "instagram.com/fulano.fit/" → "fulano.fit". Inválido ou vazio → undefined. */
+export function limparInstagram(v: unknown): string | undefined {
+  if (typeof v !== "string") return undefined;
+  const u = v
+    .trim()
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+    .replace(/^@+/, "")
+    .replace(/[/?#].*$/, "")
+    .toLowerCase();
+  return /^[a-z0-9._]{1,30}$/.test(u) ? u : undefined;
+}
+
 export function rotuloDia(data: string): string {
   const d = new Date(`${data}T12:00:00Z`);
   const [, mes, dia] = data.split("-");
@@ -115,6 +142,15 @@ export async function avisarGabriel(p: PasseInscricao, total: number) {
   if (!AVISO_WHATSAPP) return;
   await enviarWhatsapp(
     AVISO_WHATSAPP,
-    [`🎟️ Passe do Treinão: aula marcada`, p.nome, `${rotuloDia(p.data)} às ${p.hora}`, `wa.me/${p.whatsapp}`, `Total: ${total}`].join("\n"),
+    [
+      `🎟️ Passe do Treinão: aula marcada`,
+      p.nome,
+      `${rotuloDia(p.data)} às ${p.hora}`,
+      `wa.me/${p.whatsapp}`,
+      p.instagram ? `instagram.com/${p.instagram}` : null,
+      `Total: ${total}`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
   );
 }

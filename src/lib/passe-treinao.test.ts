@@ -28,3 +28,13 @@ describe("passe do treinão", () => {
     expect(r.map((p) => p.data)).toEqual(["b", "c"]);
   });
 });
+
+describe("instagram do passe", () => {
+  it("limpa @, link e maiúscula; vazio ou inválido vira nada", async () => {
+    const { limparInstagram } = await import("@/lib/passe-treinao");
+    expect(limparInstagram(" @Fulano.Fit ")).toBe("fulano.fit");
+    expect(limparInstagram("https://www.instagram.com/fulano_fit/?hl=pt")).toBe("fulano_fit");
+    expect(limparInstagram("")).toBeUndefined();
+    expect(limparInstagram("não tenho")).toBeUndefined();
+  });
+});

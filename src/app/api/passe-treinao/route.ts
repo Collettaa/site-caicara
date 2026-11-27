@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { avisarGabriel, horarioValido, listarPasses, normalizeWhatsapp, passeTreinao, salvarPasse } from "@/lib/passe-treinao";
+import { avisarGabriel, horarioValido, limparInstagram, listarPasses, normalizeWhatsapp, passeTreinao, salvarPasse } from "@/lib/passe-treinao";
 
 export const runtime = "nodejs";
 
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
   const passe = {
     nome,
     whatsapp,
+    ...(limparInstagram(body.instagram) ? { instagram: limparInstagram(body.instagram) } : {}),
     data: body.data as string,
     hora: body.hora as string,
     origem: passeTreinao.origem,
