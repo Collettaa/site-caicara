@@ -61,3 +61,17 @@ describe("estoque", () => {
     expect(r).toEqual({ pagas: { P: 0, M: 2, G: 0, GG: 0 }, aguardando: 3 });
   });
 });
+
+describe("entregue do /bambu", () => {
+  it("linha de entregue marca a retirada só uma vez", () => {
+    const raw = [
+      linha(pedido({ id: "pay_1", itens: { M: 1 } })),
+      linha({ ajuste: "pay_1", pago: true }),
+      linha({ entregue: "pay_1", em: "2026-11-27T23:00:00.000Z" }),
+      linha({ entregue: "pay_1", em: "2026-11-28T10:00:00.000Z" }),
+    ].join("\n");
+    const [p] = juntarPedidos(raw);
+    expect(p.pago).toBe(true);
+    expect(p.entregueEm).toBe("2026-11-27T23:00:00.000Z");
+  });
+});

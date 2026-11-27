@@ -59,6 +59,8 @@ export type PedidoCamiseta = {
   forma: Forma;
   criadoEm: string;
   pago?: boolean;
+  /** Retirou a camiseta (link da entrega no dia do treinão). */
+  entregueEm?: string;
 };
 
 const hojeSP = (agora = new Date()) => agora.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
@@ -133,7 +135,12 @@ export function juntarPedidos(raw: string): PedidoCamiseta[] {
   for (const linha of raw.split("\n")) {
     if (!linha.trim()) continue;
     try {
-      const item = JSON.parse(linha) as PedidoCamiseta | { ajuste: string; pago: boolean };
+      const item = JSON.parse(linha) as PedidoCamiseta | { ajuste: string; pago: boolean } | { entregue: string; em: string };
+      if ("entregue" in item) {
+        const atual = porId.get(item.entregue);
+        if (atual && !atual.entregueEm) porId.set(item.entregue, { ...atual, entregueEm: item.em });
+        continue;
+      }
       if ("ajuste" in item) {
         const atual = porId.get(item.ajuste);
         if (atual) porId.set(item.ajuste, { ...atual, pago: item.pago });
@@ -156,6 +163,16 @@ const lerOuVazio = async (arquivo: string) => {
 };
 
 export const listInscricoes = async () => juntarInscricoes(await lerOuVazio(dataFile));
+/** Marca a retirada de um pedido pago do /bambu (só anexa uma linha; o arquivo nunca é reescrito). */
+export async function marcarEntregueBambu(id: string, agora: Date): Promise<boolean> {
+  return emFila(async () => {
+    const pedido = juntarPedidos(await lerOuVazio(pedidosFile)).find((p) => p.id === id);
+    if (!pedido?.pago || pedido.entregueEm) return false;
+    await anexar(pedidosFile, { entregue: id, em: agora.toISOString() });
+    return true;
+  });
+}
+
 export const listPedidos = async () => juntarPedidos(await lerOuVazio(pedidosFile));
 
 // Pedido com pagamento pendente segura as camisetas por 2 horas; pago segura sempre.
